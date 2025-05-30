@@ -62,43 +62,39 @@ local private = {
 ---Setup xi module.
 ---@param config? xi.SetupOption
 function xi.setup(config)
-  private.config = config or {}
-
-  -- Update completion config.
-  private.config.completion = private.config.completion or {}
-  private.config.completion.auto = private.config.completion.auto == nil and true or
-      private.config.completion.auto
-  private.config.completion.preselect = private.config.completion.preselect or false
-
-  -- Update signature_help config.
-  private.config.signature_help = private.config.signature_help or {}
-  private.config.signature_help.auto = private.config.signature_help.auto == nil and true or
-      private.config.signature_help.auto
-
-  -- Update attach config.
-  private.config.attach = private.config.attach or {}
-  private.config.attach.insert_mode = private.config.attach.insert_mode or function()
-    do
-      local service = xi.get_completion_service({ recreate = true })
-      service:register_source(xi.source.completion.calc(), { group = 1 })
-      service:register_source(xi.source.completion.path(), { group = 10 })
-      xi.source.completion.lsp(service, { group = 20 })
-      service:register_source(xi.source.completion.buffer(), { group = 100 })
-    end
-    do
-      local service = xi.get_signature_help_service({ recreate = true })
-      xi.source.signature_help.lsp(service)
-    end
-  end
-  private.config.attach.cmdline_mode = private.config.attach.cmdline_mode or function()
-    local service = xi.get_completion_service({ recreate = true })
-    if vim.tbl_contains({ '/', '?' }, vim.fn.getcmdtype()) then
-      service:register_source(xi.source.completion.buffer(), { group = 1 })
-    elseif vim.fn.getcmdtype() == ':' then
-      service:register_source(xi.source.completion.path(), { group = 1 })
-      service:register_source(xi.source.completion.cmdline(), { group = 10 })
-    end
-  end
+  private.config = kit.merge(config or {}, {
+    completion = {
+      auto = true,
+      preselect = false,
+    },
+    signature_help = {
+      auto = true,
+    },
+    attach = {
+      insert_mode = function()
+        do
+          local service = xi.get_completion_service({ recreate = true })
+          service:register_source(xi.source.completion.calc(), { group = 1 })
+          service:register_source(xi.source.completion.path(), { group = 10 })
+          xi.source.completion.lsp(service, { group = 20 })
+          service:register_source(xi.source.completion.buffer(), { group = 100 })
+        end
+        do
+          local service = xi.get_signature_help_service({ recreate = true })
+          xi.source.signature_help.lsp(service)
+        end
+      end,
+      cmdline_mode = function()
+        local service = xi.get_completion_service({ recreate = true })
+        if vim.tbl_contains({ '/', '?' }, vim.fn.getcmdtype()) then
+          service:register_source(xi.source.completion.buffer(), { group = 1 })
+        elseif vim.fn.getcmdtype() == ':' then
+          service:register_source(xi.source.completion.path(), { group = 1 })
+          service:register_source(xi.source.completion.cmdline(), { group = 10 })
+        end
+      end,
+    }
+  } --[[@as xi.SetupOption]])
 
   vim.api.nvim_exec_autocmds('BufEnter', { buffer = 0, modeline = false })
 
