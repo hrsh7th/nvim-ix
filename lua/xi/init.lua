@@ -179,23 +179,28 @@ function xi.setup(config)
         end)
       end
     }))
+    local function on_mode_changed()
+      rev = rev + 1
+      local c = rev
+      vim.schedule(function()
+        if c ~= rev then
+          return
+        end
+        if not vim.tbl_contains({ 'i' }, vim.api.nvim_get_mode().mode) then
+          xi.get_completion_service():clear()
+        end
+        if not vim.tbl_contains({ 'i', 's' }, vim.api.nvim_get_mode().mode) then
+          xi.get_signature_help_service():clear()
+        end
+      end)
+    end
     table.insert(private.setup.dispose, misc.autocmd('ModeChanged', {
       pattern = 'i:*',
-      callback = function()
-        rev = rev + 1
-        local c = rev
-        vim.schedule(function()
-          if c ~= rev then
-            return
-          end
-          if not vim.tbl_contains({ 'i' }, vim.api.nvim_get_mode().mode) then
-            xi.get_completion_service():clear()
-          end
-          if not vim.tbl_contains({ 'i', 's' }, vim.api.nvim_get_mode().mode) then
-            xi.get_signature_help_service():clear()
-          end
-        end)
-      end
+      callback = on_mode_changed
+    }))
+    table.insert(private.setup.dispose, misc.autocmd('ModeChanged', {
+      pattern = 's:*',
+      callback = on_mode_changed
     }))
     table.insert(private.setup.dispose, vim.api.nvim_create_autocmd('ModeChanged', {
       pattern = '*:s',
