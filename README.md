@@ -2,6 +2,10 @@
 
 The completion & signatureHelp plugin for neovim.
 
+## Warning
+
+*The API is not yet stable. If you have made any advanced customizations, they may stop working without notice.*
+
 ## Features
 
 - insert-mode & cmdline-mode completion.
