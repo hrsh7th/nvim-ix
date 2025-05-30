@@ -2,10 +2,12 @@
 
 The completion & signatureHelp plugin for neovim.
 
+
 ## Warning
 
 _The API is not yet stable. If you have made any advanced customizations, they
 may stop working without notice._
+
 
 ## Features
 
@@ -18,6 +20,7 @@ may stop working without notice._
   - cmdline
   - lsp.completion
 
+
 ## Installation
 
 ```lua
@@ -29,6 +32,7 @@ may stop working without notice._
   },
 }
 ```
+
 
 ## Usage
 
@@ -70,10 +74,9 @@ xi.charmap('i', '<C-j>', xi.action.signature_help.select_next())
 xi.charmap('i', '<C-k>', xi.action.signature_help.select_prev())
 ```
 
-The default setup configuration is the following (it will be merged with user
-specified configurations):
-
-```lua
+<details>
+  <summary>the default setup configurations</summary>
+  ```lua
 {
   -- Completion configurations.
   completion = {
@@ -128,6 +131,8 @@ specified configurations):
   }
 }
 ```
+</details>
+
 
 ## FAQ
 
