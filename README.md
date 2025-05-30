@@ -35,9 +35,16 @@ may stop working without notice._
 The basic usage is the following:
 
 ```lua
+
+
 vim.o.winborder = 'rounded' -- set window border style.
 
 local xi = require('xi')
+
+-- update lsp capabilities.
+vim.lsp.config('*', {
+  capabilities = xi.get_capabilities()
+})
 
 -- setup autocmds and configurations.
 xi.setup()

@@ -168,19 +168,21 @@ function xi.setup(config)
           if c ~= rev then
             return
           end
-          if vim.api.nvim_get_mode().mode ~= 'i' then
-            return
+          if vim.tbl_contains({ 'i' }, vim.api.nvim_get_mode().mode) then
+            if private.config.completion.auto or xi.get_completion_service():is_menu_visible() then
+              xi.get_completion_service():complete({ force = false })
+            end
           end
-          if private.config.completion.auto or xi.get_completion_service():is_menu_visible() then
-            xi.get_completion_service():complete({ force = false })
-          end
-          if private.config.signature_help.auto or xi.get_signature_help_service():is_visible() then
-            xi.get_signature_help_service():trigger({ force = false })
+          if vim.tbl_contains({ 'i', 's' }, vim.api.nvim_get_mode().mode) then
+            if private.config.signature_help.auto or xi.get_signature_help_service():is_visible() then
+              xi.get_signature_help_service():trigger({ force = false })
+            end
           end
         end)
       end
     }))
     table.insert(private.setup.dispose, misc.autocmd('ModeChanged', {
+      pattern = 'i:*',
       callback = function()
         rev = rev + 1
         local c = rev
@@ -188,24 +190,31 @@ function xi.setup(config)
           if c ~= rev then
             return
           end
-          if vim.api.nvim_get_mode().mode ~= 'i' then
-            xi.get_signature_help_service():clear()
+          if not vim.tbl_contains({ 'i' }, vim.api.nvim_get_mode().mode) then
             xi.get_completion_service():clear()
+          end
+          if not vim.tbl_contains({ 'i', 's' }, vim.api.nvim_get_mode().mode) then
+            xi.get_signature_help_service():clear()
+          end
+        end)
+      end
+    }))
+    table.insert(private.setup.dispose, vim.api.nvim_create_autocmd('ModeChanged', {
+      pattern = '*:s',
+      callback = function()
+        rev = rev + 1
+        local c = rev
+        vim.schedule(function()
+          if c ~= rev then
+            return
+          end
+          if private.config.signature_help.auto then
+            xi.get_signature_help_service():trigger({ force = true })
           end
         end)
       end
     }))
   end
-
-  ---Setup select-mode trigger.
-  table.insert(private.setup.dispose, vim.api.nvim_create_autocmd('ModeChanged', {
-    pattern = '*:s',
-    callback = function()
-      if private.config.signature_help.auto then
-        xi.get_signature_help_service():trigger({ force = true })
-      end
-    end
-  }))
 
   ---Setup cmdline-mode trigger.
   do
@@ -230,6 +239,7 @@ function xi.setup(config)
       end
     }))
     table.insert(private.setup.dispose, misc.autocmd('ModeChanged', {
+      pattern = 'c:*',
       callback = function()
         rev = rev + 1
         local c = rev
@@ -237,8 +247,10 @@ function xi.setup(config)
           if c ~= rev then
             return
           end
-          xi.get_completion_service():clear()
-          xi.get_signature_help_service():clear()
+          if not vim.api.nvim_get_mode().mode ~= 'c' then
+            xi.get_completion_service():clear()
+            xi.get_signature_help_service():clear()
+          end
         end)
       end
     }))
@@ -480,6 +492,68 @@ function xi.do_action(runner)
       runner(ctx)
     end)
   end
+end
+
+---Get xi supported capabilities.
+---@return table
+function xi.get_capabilities()
+  return {
+    textDocument = {
+      completion = {
+        dynamicRegistration = true,
+        completionItem = {
+          snippetSupport = true,
+          commitCharactersSupport = true,
+          deprecatedSupport = true,
+          preselectSupport = true,
+          tagSupport = {
+            valueSet = {
+              1, -- Deprecated
+            }
+          },
+          insertReplaceSupport = true,
+          resolveSupport = {
+            properties = {
+              "documentation",
+              "additionalTextEdits",
+              "insertTextFormat",
+              "insertTextMode",
+              "command",
+            },
+          },
+          insertTextModeSupport = {
+            valueSet = {
+              1, -- asIs
+              2, -- adjustIndentation
+            }
+          },
+          labelDetailsSupport = true,
+        },
+        contextSupport = true,
+        insertTextMode = 1,
+        completionList = {
+          itemDefaults = {
+            'commitCharacters',
+            'editRange',
+            'insertTextFormat',
+            'insertTextMode',
+            'data',
+          }
+        }
+      },
+      signatureHelp = {
+        dynamicRegistration = true,
+        signatureInformation = {
+          documentationFormat = { 'markdown', 'plaintext' },
+          parameterInformation = {
+            labelOffsetSupport = true,
+          },
+          activeParameterSupport = true,
+        },
+        contextSupport = true,
+      }
+    },
+  }
 end
 
 return xi
