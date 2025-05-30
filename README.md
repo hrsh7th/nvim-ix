@@ -66,6 +66,7 @@ specified configurations):
 
 ```lua
 {
+  -- Completion configurations.
   completion = {
     -- Enable/disable `auto` completion.
     auto = true,
@@ -80,10 +81,14 @@ specified configurations):
     -- nil|fun(snippet: string, opts: any): nil
     expand_snippet = nil,
   },
+
+  -- SignatureHelp configurations.
   signature_help = {
     -- Enable/disable `auto` signature help triggering.
     auto = true,
   },
+
+  -- Attach services to each modes.
   attach = {
     -- Attach insert-mode services.
     -- NOTE: This is an advanced feature and is subject to breaking changes as the API is not yet stable.
