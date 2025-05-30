@@ -96,8 +96,6 @@ function xi.setup(config)
     }
   } --[[@as xi.SetupOption]])
 
-  vim.api.nvim_exec_autocmds('BufEnter', { buffer = 0, modeline = false })
-
   -- Dispose existing services.
   for k, service in pairs(private.completion.i) do
     service:dispose()
