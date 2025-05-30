@@ -61,18 +61,32 @@ xi.charmap('i', '<C-j>', xi.action.signature_help.select_next())
 xi.charmap('i', '<C-k>', xi.action.signature_help.select_prev())
 ```
 
-The default setup configuration is the following (it will be merged with user specified configurations):
+The default setup configuration is the following (it will be merged with user
+specified configurations):
 
 ```lua
 {
   completion = {
+    -- Enable/disable `auto` completion.
     auto = true,
+
+    -- Enable/disable `preselect` feature that defined in the LSP spec.
     preselect = false,
+
+    -- Default keyword pattern for completion.
+    default_keyword_pattern = [[\%(-\?\d\+\%(\.\d\+\)\?\|\h\w*\%(-\w*\)*\)]],
+
+    -- Expand snippet function.
+    -- nil|fun(snippet: string, opts: any): nil
+    expand_snippet = nil,
   },
   signature_help = {
+    -- Enable/disable `auto` signature help triggering.
     auto = true,
   },
   attach = {
+    -- Attach insert-mode services.
+    -- NOTE: This is an advanced feature and is subject to breaking changes as the API is not yet stable.
     insert_mode = function()
       do
         local service = xi.get_completion_service({ recreate = true })
@@ -86,6 +100,8 @@ The default setup configuration is the following (it will be merged with user sp
         xi.source.signature_help.lsp(service)
       end
     end,
+    -- Attach cmdline-mode services.
+    -- NOTE: This is an advanced feature and is subject to breaking changes as the API is not yet stable.
     cmdline_mode = function()
       local service = xi.get_completion_service({ recreate = true })
       if vim.tbl_contains({ '/', '?' }, vim.fn.getcmdtype()) then
@@ -99,10 +115,9 @@ The default setup configuration is the following (it will be merged with user sp
 }
 ```
 
+## FAQ
 
 ### Why do you create new completion plugin?
 
 My thoughts are explained in the Japanese article
 [here](https://zenn.dev/hrsh7th/articles/1d558a56084fe5).
-```
-
