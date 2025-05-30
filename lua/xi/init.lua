@@ -76,12 +76,12 @@ function xi.setup(config)
           local service = xi.get_completion_service({ recreate = true })
           service:register_source(xi.source.completion.calc(), { group = 1 })
           service:register_source(xi.source.completion.path(), { group = 10 })
-          xi.source.completion.lsp(service, { group = 20 })
+          xi.source.completion.attach_lsp(service, { group = 20 })
           service:register_source(xi.source.completion.buffer(), { group = 100 })
         end
         do
           local service = xi.get_signature_help_service({ recreate = true })
-          xi.source.signature_help.lsp(service)
+          xi.source.signature_help.attach_lsp(service)
         end
       end,
       cmdline_mode = function()

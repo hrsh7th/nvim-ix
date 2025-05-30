@@ -41,7 +41,7 @@ end
 ---Attach lsp completion source to the completion service.
 ---@param completion_service cmp-kit.completion.CompletionService
 ---@param option? { bufnr: integer?, group: integer?, priority: integer?, server?: table<string, cmp-kit.completion.ext.source.lsp.completion.Option> }
-function source.completion.lsp(completion_service, option)
+function source.completion.attach_lsp(completion_service, option)
   option = option or {}
   option.bufnr = option.bufnr or vim.api.nvim_get_current_buf()
   option.bufnr = option.bufnr ~= 0 and vim.api.nvim_get_current_buf() or option.bufnr
@@ -91,7 +91,7 @@ source.signature_help = {}
 ---Attach lsp signature_help source to the signature_help service.
 ---@param signature_help_service cmp-kit.signature_help.SignatureHelpService
 ---@param option? { bufnr: integer?, group: integer?, priority: integer? }
-function source.signature_help.lsp(signature_help_service, option)
+function source.signature_help.attach_lsp(signature_help_service, option)
   option = option or {}
   option.bufnr = option.bufnr or vim.api.nvim_get_current_buf()
   option.bufnr = option.bufnr ~= 0 and vim.api.nvim_get_current_buf() or option.bufnr
