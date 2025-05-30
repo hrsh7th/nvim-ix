@@ -76,7 +76,8 @@ xi.charmap('i', '<C-k>', xi.action.signature_help.select_prev())
 
 <details>
   <summary>the default setup configurations</summary>
-  ```lua
+  
+```lua
 {
   -- Completion configurations.
   completion = {
@@ -131,6 +132,7 @@ xi.charmap('i', '<C-k>', xi.action.signature_help.select_prev())
   }
 }
 ```
+
 </details>
 
 
