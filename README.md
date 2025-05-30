@@ -35,6 +35,8 @@ may stop working without notice._
 The basic usage is the following:
 
 ```lua
+vim.o.winborder = 'rounded' -- set window border style.
+
 local xi = require('xi')
 
 -- setup autocmds and configurations.
