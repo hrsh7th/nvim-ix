@@ -12,7 +12,6 @@ local SignatureHelpService = require('cmp-kit.signature_help.SignatureHelpServic
 ---@field char string
 ---@field callback xi.Charmap.Callback
 
-
 local xi = {
   source = require('xi.source'),
   action = require('xi.action'),
@@ -160,59 +159,65 @@ function xi.setup(config)
     local rev = 0
     table.insert(private.setup.dispose, misc.autocmd({ 'TextChangedI', 'CursorMovedI' }, {
       callback = function()
+        local completion_service = xi.get_completion_service()
+        local signature_help_service = xi.get_signature_help_service()
+
         rev = rev + 1
         local c = rev
         vim.schedule(function()
           if c ~= rev then
             return
           end
-          if vim.tbl_contains({ 'i' }, vim.api.nvim_get_mode().mode) then
-            if private.config.completion.auto or xi.get_completion_service():is_menu_visible() then
-              xi.get_completion_service():complete({ force = false })
+          local mode = vim.api.nvim_get_mode().mode
+          if vim.tbl_contains({ 'i' }, mode) then
+            if private.config.completion.auto or completion_service:is_menu_visible() then
+              completion_service:complete({ force = false })
             end
           end
-          if vim.tbl_contains({ 'i', 's' }, vim.api.nvim_get_mode().mode) then
-            if private.config.signature_help.auto or xi.get_signature_help_service():is_visible() then
-              xi.get_signature_help_service():trigger({ force = false })
+          if vim.tbl_contains({ 'i', 's' }, mode) then
+            if private.config.signature_help.auto or signature_help_service:is_visible() then
+              signature_help_service:trigger({ force = false })
             end
           end
         end)
       end
     }))
-    local function on_mode_changed()
-      rev = rev + 1
-      local c = rev
-      vim.schedule(function()
-        if c ~= rev then
-          return
-        end
-        if not vim.tbl_contains({ 'i' }, vim.api.nvim_get_mode().mode) then
-          xi.get_completion_service():clear()
-        end
-        if not vim.tbl_contains({ 'i', 's' }, vim.api.nvim_get_mode().mode) then
-          xi.get_signature_help_service():clear()
-        end
-      end)
-    end
     table.insert(private.setup.dispose, misc.autocmd('ModeChanged', {
-      pattern = 'i:*',
-      callback = on_mode_changed
-    }))
-    table.insert(private.setup.dispose, misc.autocmd('ModeChanged', {
-      pattern = 's:*',
-      callback = on_mode_changed
-    }))
-    table.insert(private.setup.dispose, vim.api.nvim_create_autocmd('ModeChanged', {
-      pattern = '*:s',
+      pattern = { 'i:*', 's:*' },
       callback = function()
+        local completion_service = xi.get_completion_service()
+        local signature_help_service = xi.get_signature_help_service()
+
         rev = rev + 1
         local c = rev
         vim.schedule(function()
           if c ~= rev then
             return
           end
-          if private.config.signature_help.auto then
-            xi.get_signature_help_service():trigger({ force = true })
+          local mode = vim.api.nvim_get_mode().mode
+          if not vim.tbl_contains({ 'i' }, mode) then
+            completion_service:clear()
+          end
+          if not vim.tbl_contains({ 'i', 's' }, mode) then
+            signature_help_service:clear()
+          end
+        end)
+      end
+    }))
+    table.insert(private.setup.dispose, vim.api.nvim_create_autocmd('ModeChanged', {
+      pattern = '*:s',
+      callback = function()
+        local signature_help_service = xi.get_signature_help_service()
+
+        rev = rev + 1
+        local c = rev
+        vim.schedule(function()
+          if c ~= rev then
+            return
+          end
+          local mode = vim.api.nvim_get_mode().mode
+          if private.config.signature_help.auto and mode == 's' and not signature_help_service:is_visible() then
+            signature_help_service:trigger({ force = true })
           end
         end)
       end
@@ -224,18 +229,22 @@ function xi.setup(config)
     local rev = 0
     table.insert(private.setup.dispose, misc.autocmd('CmdlineChanged', {
       callback = function()
+        local completion_service = xi.get_completion_service()
+        local signature_help_service = xi.get_signature_help_service()
+
         rev = rev + 1
         local c = rev
         vim.schedule(function()
           if c ~= rev then
             return
           end
-          if vim.fn.mode(1):sub(1, 1) == 'c' then
-            if private.config.completion.auto or xi.get_completion_service():is_menu_visible() then
-              xi.get_completion_service():complete({ force = false })
+          local mode = vim.api.nvim_get_mode().mode
+          if mode == 'c' then
+            if private.config.completion.auto or completion_service:is_menu_visible() then
+              completion_service:complete({ force = false })
             end
-            if private.config.signature_help.auto or xi.get_signature_help_service():is_visible() then
-              xi.get_signature_help_service():trigger({ force = false })
+            if private.config.signature_help.auto or signature_help_service:is_visible() then
+              signature_help_service:trigger({ force = false })
             end
           end
         end)
@@ -244,15 +253,19 @@ function xi.setup(config)
     table.insert(private.setup.dispose, misc.autocmd('ModeChanged', {
       pattern = 'c:*',
       callback = function()
+        local completion_service = xi.get_completion_service()
+        local signature_help_service = xi.get_signature_help_service()
+
         rev = rev + 1
         local c = rev
         vim.schedule(function()
           if c ~= rev then
             return
           end
-          if not vim.api.nvim_get_mode().mode ~= 'c' then
-            xi.get_completion_service():clear()
-            xi.get_signature_help_service():clear()
+          local mode = vim.api.nvim_get_mode().mode
+          if mode ~= 'c' then
+            completion_service:clear()
+            signature_help_service:clear()
           end
         end)
       end
