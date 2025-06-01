@@ -46,8 +46,10 @@ vim.lsp.config('*', {
 
 -- setup autocmds and configurations.
 ix.setup({
+  -- Register snippet expand function.
+  -- You can omit this if you don't use snippets.
   expand_snippet = function(snippet)
-    dot_context.expand_snippet({ body = snippet })
+    vim.snippet.expand(snippet)
   end
 })
 
