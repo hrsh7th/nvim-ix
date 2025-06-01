@@ -1,20 +1,20 @@
-local misc = require('xi.misc')
+local misc = require('ix.misc')
 local kit = require('cmp-kit.kit')
 local Async = require('cmp-kit.kit.Async')
 local Keymap = require('cmp-kit.kit.Vim.Keymap')
 local CompletionService = require('cmp-kit.completion.CompletionService')
 local SignatureHelpService = require('cmp-kit.signature_help.SignatureHelpService')
 
----@alias xi.Charmap.Callback fun(api: xi.API, fallback: fun())
+---@alias ix.Charmap.Callback fun(api: ix.API, fallback: fun())
 
----@class xi.Charmap
+---@class ix.Charmap
 ---@field mode string[]
 ---@field char string
----@field callback xi.Charmap.Callback
+---@field callback ix.Charmap.Callback
 
-local xi = {
-  source = require('xi.source'),
-  action = require('xi.action'),
+local ix = {
+  source = require('ix.source'),
+  action = require('ix.action'),
 }
 
 local private = {
@@ -31,7 +31,7 @@ local private = {
   },
 
   ---charmaps registry.
-  charmaps = {} --[=[@as xi.Charmap[]]=],
+  charmaps = {} --[=[@as ix.Charmap[]]=],
 
   ---setup registry.
   setup = {
@@ -40,27 +40,27 @@ local private = {
   }
 }
 
----@class xi.SetupOption.Completion
+---@class ix.SetupOption.Completion
 ---@field public auto? boolean
 ---@field public default_keyword_pattern? string
----@field public expand_snippet? cmp-kit.completion.ExpandSnippet
 ---@field public preselect? boolean
 
----@class xi.SetupOption.SignatureHelp
+---@class ix.SetupOption.SignatureHelp
 ---@field public auto? boolean
 ---
----@class xi.SetupOption.Attach
+---@class ix.SetupOption.Attach
 ---@field public insert_mode? fun()
 ---@field public cmdline_mode? fun()
 ---
----@class xi.SetupOption
----@field public completion? xi.SetupOption.Completion
----@field public signature_help? xi.SetupOption.SignatureHelp
----@field public attach? xi.SetupOption.Attach
+---@class ix.SetupOption
+---@field public expand_snippet? cmp-kit.completion.ExpandSnippet
+---@field public completion? ix.SetupOption.Completion
+---@field public signature_help? ix.SetupOption.SignatureHelp
+---@field public attach? ix.SetupOption.Attach
 
----Setup xi module.
----@param config? xi.SetupOption
-function xi.setup(config)
+---Setup ix module.
+---@param config? ix.SetupOption
+function ix.setup(config)
   private.config = kit.merge(config or {}, {
     completion = {
       auto = true,
@@ -72,28 +72,28 @@ function xi.setup(config)
     attach = {
       insert_mode = function()
         do
-          local service = xi.get_completion_service({ recreate = true })
-          service:register_source(xi.source.completion.calc(), { group = 1 })
-          service:register_source(xi.source.completion.path(), { group = 10 })
-          xi.source.completion.attach_lsp(service, { group = 20 })
-          service:register_source(xi.source.completion.buffer(), { group = 100 })
+          local service = ix.get_completion_service({ recreate = true })
+          service:register_source(ix.source.completion.calc(), { group = 1 })
+          service:register_source(ix.source.completion.path(), { group = 10 })
+          ix.source.completion.attach_lsp(service, { group = 20 })
+          service:register_source(ix.source.completion.buffer(), { group = 100 })
         end
         do
-          local service = xi.get_signature_help_service({ recreate = true })
-          xi.source.signature_help.attach_lsp(service)
+          local service = ix.get_signature_help_service({ recreate = true })
+          ix.source.signature_help.attach_lsp(service)
         end
       end,
       cmdline_mode = function()
-        local service = xi.get_completion_service({ recreate = true })
+        local service = ix.get_completion_service({ recreate = true })
         if vim.tbl_contains({ '/', '?' }, vim.fn.getcmdtype()) then
-          service:register_source(xi.source.completion.buffer(), { group = 1 })
+          service:register_source(ix.source.completion.buffer(), { group = 1 })
         elseif vim.fn.getcmdtype() == ':' then
-          service:register_source(xi.source.completion.path(), { group = 1 })
-          service:register_source(xi.source.completion.cmdline(), { group = 10 })
+          service:register_source(ix.source.completion.path(), { group = 1 })
+          service:register_source(ix.source.completion.cmdline(), { group = 10 })
         end
       end,
     }
-  } --[[@as xi.SetupOption]])
+  } --[[@as ix.SetupOption]])
 
   -- Dispose existing services.
   for k, service in pairs(private.completion.i) do
@@ -131,7 +131,7 @@ function xi.setup(config)
       -- find charmap.
       local charmap = vim.iter(private.charmaps):find(function(charmap)
         return vim.tbl_contains(charmap.mode, mode) and vim.fn.keytrans(typed) == vim.fn.keytrans(charmap.char)
-      end) --[[@as xi.Charmap?]]
+      end) --[[@as ix.Charmap?]]
       if not charmap then
         return
       end
@@ -144,14 +144,14 @@ function xi.setup(config)
         end
       end
 
-      xi.do_action(function(ctx)
+      ix.do_action(function(ctx)
         charmap.callback(ctx, function()
           Keymap.send({ keys = charmap.char, remap = true }):await()
         end)
       end)
 
       return ''
-    end, vim.api.nvim_create_namespace('xi'), {})
+    end, vim.api.nvim_create_namespace('ix'), {})
   end
 
   ---Setup insert-mode trigger.
@@ -159,8 +159,8 @@ function xi.setup(config)
     local rev = 0
     table.insert(private.setup.dispose, misc.autocmd({ 'TextChangedI', 'CursorMovedI' }, {
       callback = function()
-        local completion_service = xi.get_completion_service()
-        local signature_help_service = xi.get_signature_help_service()
+        local completion_service = ix.get_completion_service()
+        local signature_help_service = ix.get_signature_help_service()
 
         rev = rev + 1
         local c = rev
@@ -185,8 +185,8 @@ function xi.setup(config)
     table.insert(private.setup.dispose, misc.autocmd('ModeChanged', {
       pattern = { 'i:*', 's:*' },
       callback = function()
-        local completion_service = xi.get_completion_service()
-        local signature_help_service = xi.get_signature_help_service()
+        local completion_service = ix.get_completion_service()
+        local signature_help_service = ix.get_signature_help_service()
 
         rev = rev + 1
         local c = rev
@@ -207,7 +207,7 @@ function xi.setup(config)
     table.insert(private.setup.dispose, vim.api.nvim_create_autocmd('ModeChanged', {
       pattern = '*:s',
       callback = function()
-        local signature_help_service = xi.get_signature_help_service()
+        local signature_help_service = ix.get_signature_help_service()
 
         rev = rev + 1
         local c = rev
@@ -229,8 +229,8 @@ function xi.setup(config)
     local rev = 0
     table.insert(private.setup.dispose, misc.autocmd('CmdlineChanged', {
       callback = function()
-        local completion_service = xi.get_completion_service()
-        local signature_help_service = xi.get_signature_help_service()
+        local completion_service = ix.get_completion_service()
+        local signature_help_service = ix.get_signature_help_service()
 
         rev = rev + 1
         local c = rev
@@ -253,8 +253,8 @@ function xi.setup(config)
     table.insert(private.setup.dispose, misc.autocmd('ModeChanged', {
       pattern = 'c:*',
       callback = function()
-        local completion_service = xi.get_completion_service()
-        local signature_help_service = xi.get_signature_help_service()
+        local completion_service = ix.get_completion_service()
+        local signature_help_service = ix.get_signature_help_service()
 
         rev = rev + 1
         local c = rev
@@ -306,7 +306,7 @@ end
 ---Get current completion service.
 ---@param option? { recreate: boolean }
 ---@return cmp-kit.completion.CompletionService
-function xi.get_completion_service(option)
+function ix.get_completion_service(option)
   option = option or {}
   option.recreate = option.recreate or false
 
@@ -343,7 +343,7 @@ end
 ---Get current signature_help service.
 ---@param option? { recreate: boolean }
 ---@return cmp-kit.signature_help.SignatureHelpService
-function xi.get_signature_help_service(option)
+function ix.get_signature_help_service(option)
   option = option or {}
   option.recreate = option.recreate or false
 
@@ -373,8 +373,8 @@ end
 ---Setup character mapping.
 ---@param mode 'i' | 'c' | ('i' | 'c')[]
 ---@param char string
----@param callback fun(api: xi.API, fallback: fun())
-function xi.charmap(mode, char, callback)
+---@param callback fun(api: ix.API, fallback: fun())
+function ix.charmap(mode, char, callback)
   local l = 0
   local i = 1
   local n = false
@@ -398,7 +398,7 @@ function xi.charmap(mode, char, callback)
   end
 
   if l > 1 then
-    error('`xi.charmap` does not support multiple key sequence')
+    error('`ix.charmap` does not support multiple key sequence')
   end
 
   table.insert(private.charmaps, {
@@ -408,8 +408,8 @@ function xi.charmap(mode, char, callback)
   })
 end
 
----Run xi action in async-context.
----@class xi.API.Completion
+---Run ix action in async-context.
+---@class ix.API.Completion
 ---@field prevent fun(callback: fun())
 ---@field close fun()
 ---@field is_menu_visible fun(): boolean
@@ -419,7 +419,7 @@ end
 ---@field select fun(index: integer, preselect?: boolean)
 ---@field scroll_docs fun(delta: integer)
 ---@field commit fun(index: integer, option?: { replace: boolean, no_snippet: boolean }): boolean
----@class xi.API.SignatureHelp
+---@class ix.API.SignatureHelp
 ---@field prevent fun(callback: fun())
 ---@field trigger fun()
 ---@field close fun()
@@ -427,45 +427,45 @@ end
 ---@field get_active_signature_data fun(): cmp-kit.signature_help.ActiveSignatureData|nil
 ---@field select fun(index: integer)
 ---@field scroll fun(delta: integer)
----@class xi.API
----@field completion xi.API.Completion
----@field signature_help xi.API.SignatureHelp
+---@class ix.API
+---@field completion ix.API.Completion
+---@field signature_help ix.API.SignatureHelp
 ---@field schedule fun()
 ---@field feedkeys fun(keys: string, remap?: boolean)
-function xi.do_action(runner)
+function ix.do_action(runner)
   local ctx
   ctx = {
     completion = {
       prevent = function(callback)
-        local resume = xi.get_completion_service():prevent()
+        local resume = ix.get_completion_service():prevent()
         callback()
         resume()
       end,
       close = function()
-        xi.get_completion_service():clear()
+        ix.get_completion_service():clear()
       end,
       is_menu_visible = function()
-        return xi.get_completion_service():is_menu_visible()
+        return ix.get_completion_service():is_menu_visible()
       end,
       is_docs_visible = function()
-        return xi.get_completion_service():is_docs_visible()
+        return ix.get_completion_service():is_docs_visible()
       end,
       get_selection = function()
-        return xi.get_completion_service():get_selection()
+        return ix.get_completion_service():get_selection()
       end,
       complete = function(option)
-        xi.get_completion_service():complete(option):await()
+        ix.get_completion_service():complete(option):await()
       end,
       select = function(index, preselect)
-        xi.get_completion_service():select(index, preselect):await()
+        ix.get_completion_service():select(index, preselect):await()
       end,
       scroll_docs = function(delta)
-        xi.get_completion_service():scroll_docs(delta)
+        ix.get_completion_service():scroll_docs(delta)
       end,
       commit = function(index, option)
-        local match = xi.get_completion_service():get_match_at(index)
+        local match = ix.get_completion_service():get_match_at(index)
         if match then
-          xi.get_completion_service():commit(match.item, option):await()
+          ix.get_completion_service():commit(match.item, option):await()
           return true
         end
         return false
@@ -473,27 +473,27 @@ function xi.do_action(runner)
     },
     signature_help = {
       prevent = function(callback)
-        local resume = xi.get_signature_help_service():prevent()
+        local resume = ix.get_signature_help_service():prevent()
         callback()
         resume()
       end,
       trigger = function()
-        xi.get_signature_help_service():trigger({ force = true }):await()
+        ix.get_signature_help_service():trigger({ force = true }):await()
       end,
       close = function()
-        xi.get_signature_help_service():clear()
+        ix.get_signature_help_service():clear()
       end,
       is_visible = function()
-        return xi.get_signature_help_service():is_visible()
+        return ix.get_signature_help_service():is_visible()
       end,
       get_active_signature_data = function()
-        return xi.get_signature_help_service():get_active_signature_data()
+        return ix.get_signature_help_service():get_active_signature_data()
       end,
       select = function(index)
-        xi.get_signature_help_service():select(index)
+        ix.get_signature_help_service():select(index)
       end,
       scroll = function(delta)
-        xi.get_signature_help_service():scroll(delta)
+        ix.get_signature_help_service():scroll(delta)
       end,
     },
     schedule = function()
@@ -502,7 +502,7 @@ function xi.do_action(runner)
     feedkeys = function(keys, remap)
       Keymap.send({ { keys = keys, remap = not not remap } }):await()
     end,
-  } --[[@as xi.API]]
+  } --[[@as ix.API]]
   if runner then
     Async.run(function()
       runner(ctx)
@@ -510,9 +510,9 @@ function xi.do_action(runner)
   end
 end
 
----Get xi supported capabilities.
+---Get ix supported capabilities.
 ---@return table
-function xi.get_capabilities()
+function ix.get_capabilities()
   return {
     textDocument = {
       completion = {
@@ -572,4 +572,4 @@ function xi.get_capabilities()
   }
 end
 
-return xi
+return ix

@@ -2,7 +2,7 @@ local kit = require('cmp-kit.kit')
 
 local misc = {}
 
-local group = vim.api.nvim_create_augroup('xi', {
+local group = vim.api.nvim_create_augroup('ix', {
   clear = true
 })
 

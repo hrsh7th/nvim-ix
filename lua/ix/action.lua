@@ -4,7 +4,7 @@ local action = {}
 do
   ---Scroll completion docs or signature help.
   function action.scroll(delta)
-    ---@type xi.Charmap.Callback
+    ---@type ix.Charmap.Callback
     return function(ctx, fallback)
       local exec = false
       if ctx.completion.is_docs_visible() then
@@ -28,7 +28,7 @@ do
 
   ---Invoke completion.
   function action.completion.complete()
-    ---@type xi.Charmap.Callback
+    ---@type ix.Charmap.Callback
     return function(ctx)
       ctx.completion.complete({ force = true })
     end
@@ -40,7 +40,7 @@ do
     option = option or {}
     option.no_insert = option.no_insert or false
 
-    ---@type xi.Charmap.Callback
+    ---@type ix.Charmap.Callback
     return function(ctx, fallback)
       local selection = ctx.completion.get_selection()
       if selection then
@@ -57,7 +57,7 @@ do
     option = option or {}
     option.no_insert = option.no_insert or false
 
-    ---@type xi.Charmap.Callback
+    ---@type ix.Charmap.Callback
     return function(ctx, fallback)
       local selection = ctx.completion.get_selection()
       if selection then
@@ -76,7 +76,7 @@ do
     option.replace = option.replace or false
     option.no_snippet = option.no_snippet or false
 
-    ---@type xi.Charmap.Callback
+    ---@type ix.Charmap.Callback
     return function(ctx, fallback)
       local selection = ctx.completion.get_selection()
       if selection then
@@ -97,7 +97,7 @@ do
 
   ---Commit completion for cmdline.
   function action.completion.commit_cmdline()
-    ---@type xi.Charmap.Callback
+    ---@type ix.Charmap.Callback
     return function(ctx)
       ctx.completion.close()
       vim.api.nvim_feedkeys(vim.keycode('<CR>'), 'n', true) -- don't use `ctx.fallback` here it sends extra `<Cmd>...<CR>` keys, that prevent Hit-Enter prompt unexpectedly.
@@ -106,7 +106,7 @@ do
 
   ---Close completion menu.
   function action.completion.close()
-    ---@type xi.Charmap.Callback
+    ---@type ix.Charmap.Callback
     return function(ctx, fallback)
       if ctx.completion.is_menu_visible() then
         ctx.completion.close()
@@ -119,7 +119,7 @@ do
   ---Scroll completion docs.
   ---@param delta integer
   function action.completion.scroll_docs(delta)
-    ---@type xi.Charmap.Callback
+    ---@type ix.Charmap.Callback
     return function(ctx, fallback)
       if ctx.completion.is_docs_visible() then
         ctx.completion.scroll_docs(delta)
@@ -136,7 +136,7 @@ do
 
   ---Trigger signature help.
   function action.signature_help.trigger()
-    ---@type xi.Charmap.Callback
+    ---@type ix.Charmap.Callback
     return function(ctx)
       ctx.signature_help.trigger()
     end
@@ -144,7 +144,7 @@ do
 
   ---Select next signature help item.
   function action.signature_help.select_next()
-    ---@type xi.Charmap.Callback
+    ---@type ix.Charmap.Callback
     return function(ctx, fallback)
       if ctx.signature_help.is_visible() then
         local data = ctx.signature_help.get_active_signature_data()
@@ -163,7 +163,7 @@ do
 
   ---Select prev signature help item.
   function action.signature_help.select_prev()
-    ---@type xi.Charmap.Callback
+    ---@type ix.Charmap.Callback
     return function(ctx, fallback)
       if ctx.signature_help.is_visible() then
         local data = ctx.signature_help.get_active_signature_data()
@@ -182,7 +182,7 @@ do
 
   ---Scroll signature help view.
   function action.signature_help.scroll(delta)
-    ---@type xi.Charmap.Callback
+    ---@type ix.Charmap.Callback
     return function(ctx, fallback)
       if ctx.signature_help.is_visible() then
         ctx.signature_help.scroll(delta)

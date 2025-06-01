@@ -1,4 +1,4 @@
-local misc = require('xi.misc')
+local misc = require('ix.misc')
 local kit = require('cmp-kit.kit')
 
 local source = {}
