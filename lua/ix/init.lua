@@ -156,18 +156,12 @@ function ix.setup(config)
 
   ---Setup insert-mode trigger.
   do
-    local rev = 0
+    local queue = misc.schedule_queue()
     table.insert(private.setup.dispose, misc.autocmd({ 'TextChangedI', 'CursorMovedI' }, {
       callback = function()
         local completion_service = ix.get_completion_service()
         local signature_help_service = ix.get_signature_help_service()
-
-        rev = rev + 1
-        local c = rev
-        vim.schedule(function()
-          if c ~= rev then
-            return
-          end
+        queue.add(function()
           local mode = vim.api.nvim_get_mode().mode
           if vim.tbl_contains({ 'i' }, mode) then
             if private.config.completion.auto or completion_service:is_menu_visible() then
@@ -187,13 +181,7 @@ function ix.setup(config)
       callback = function()
         local completion_service = ix.get_completion_service()
         local signature_help_service = ix.get_signature_help_service()
-
-        rev = rev + 1
-        local c = rev
-        vim.schedule(function()
-          if c ~= rev then
-            return
-          end
+        queue.add(function()
           local mode = vim.api.nvim_get_mode().mode
           if not vim.tbl_contains({ 'i' }, mode) then
             completion_service:clear()
@@ -208,15 +196,9 @@ function ix.setup(config)
       pattern = '*:s',
       callback = function()
         local signature_help_service = ix.get_signature_help_service()
-
-        rev = rev + 1
-        local c = rev
-        vim.schedule(function()
-          if c ~= rev then
-            return
-          end
+        queue.add(function()
           local mode = vim.api.nvim_get_mode().mode
-          if private.config.signature_help.auto and mode == 's' and not signature_help_service:is_visible() then
+          if mode == 's' and not signature_help_service:is_visible() then
             signature_help_service:trigger({ force = true })
           end
         end)
@@ -226,18 +208,12 @@ function ix.setup(config)
 
   ---Setup cmdline-mode trigger.
   do
-    local rev = 0
+    local queue = misc.schedule_queue()
     table.insert(private.setup.dispose, misc.autocmd('CmdlineChanged', {
       callback = function()
         local completion_service = ix.get_completion_service()
         local signature_help_service = ix.get_signature_help_service()
-
-        rev = rev + 1
-        local c = rev
-        vim.schedule(function()
-          if c ~= rev then
-            return
-          end
+        queue.add(function()
           local mode = vim.api.nvim_get_mode().mode
           if mode == 'c' then
             if private.config.completion.auto or completion_service:is_menu_visible() then
@@ -255,13 +231,7 @@ function ix.setup(config)
       callback = function()
         local completion_service = ix.get_completion_service()
         local signature_help_service = ix.get_signature_help_service()
-
-        rev = rev + 1
-        local c = rev
-        vim.schedule(function()
-          if c ~= rev then
-            return
-          end
+        queue.add(function()
           local mode = vim.api.nvim_get_mode().mode
           if mode ~= 'c' then
             completion_service:clear()
