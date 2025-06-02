@@ -1,5 +1,6 @@
 local misc = require('ix.misc')
 local kit = require('cmp-kit.kit')
+local LSP = require('cmp-kit.kit.LSP')
 local Async = require('cmp-kit.kit.Async')
 local Keymap = require('cmp-kit.kit.Vim.Keymap')
 local CompletionService = require('cmp-kit.completion.CompletionService')
@@ -44,6 +45,7 @@ local private = {
 ---@field public auto? boolean
 ---@field public default_keyword_pattern? string
 ---@field public preselect? boolean
+---@field public icon_resolver? fun(kind: cmp-kit.kit.LSP.CompletionItemKind): { [1]: string, [2]?: string }?
 
 ---@class ix.SetupOption.SignatureHelp
 ---@field public auto? boolean
@@ -62,14 +64,66 @@ local private = {
 ---@param config? ix.SetupOption
 function ix.setup(config)
   private.config = kit.merge(config or {}, {
+    ---Expand snippet function.
+    ---@type nil|cmp-kit.completion.ExpandSnippet
+    expand_snippet = nil,
+
+    ---Completion configuration.
     completion = {
+
+      ---Enable/disable auto completion.
+      ---@type boolean
       auto = true,
+
+      ---Enable/disable LSP's preselect feature.
+      ---@type boolean
       preselect = false,
+
+      ---Default keyword pattern for completion.
+      ---@type string
+      default_keyword_pattern = require('cmp-kit.completion.ext.DefaultConfig').default_keyword_pattern,
+
+      ---Resolve LSP's CompletionItemKind to icons.
+      ---@type nil|fun(kind: cmp-kit.kit.LSP.CompletionItemKind): { [1]: string, [2]?: string }?
+      icon_resolver = (function()
+        local cache = {}
+
+        local CompletionItemKindLookup = {}
+        for k, v in pairs(LSP.CompletionItemKind) do
+          CompletionItemKindLookup[v] = k
+        end
+
+        -- mini.icons
+        local ok, MiniIcons = pcall(require, 'mini.icons')
+        if ok and MiniIcons then
+          ---@param completion_item_kind cmp-kit.kit.LSP.CompletionItemKind
+          ---@return { [1]: string, [2]?: string }?
+          return function(completion_item_kind)
+            if not cache[completion_item_kind] then
+              local kind = CompletionItemKindLookup[completion_item_kind] or 'text'
+              cache[completion_item_kind] = { MiniIcons.get('lsp', kind:lower()) }
+            end
+            return cache[completion_item_kind]
+          end
+        end
+        return nil
+      end)(),
     },
+
+    ---Signature help configuration.
     signature_help = {
+
+      ---Auto trigger signature help.
+      ---@type boolean
       auto = true,
+
     },
+
+    ---Attach services for each per modes.
     attach = {
+      ---Insert mode service initialization.
+      ---NOTE: This is an advanced feature and is subject to breaking changes as the API is not yet stable.
+      ---@type fun(): nil
       insert_mode = function()
         do
           local service = ix.get_completion_service({ recreate = true })
@@ -83,6 +137,9 @@ function ix.setup(config)
           ix.source.signature_help.attach_lsp(service)
         end
       end,
+      ---Cmdline mode service initialization.
+      ---NOTE: This is an advanced feature and is subject to breaking changes as the API is not yet stable.
+      ---@type fun(): nil
       cmdline_mode = function()
         local service = ix.get_completion_service({ recreate = true })
         if vim.tbl_contains({ '/', '?' }, vim.fn.getcmdtype()) then
@@ -290,6 +347,9 @@ function ix.get_completion_service(option)
       private.completion.c[key] = CompletionService.new({
         default_keyword_pattern = private.config.completion.default_keyword_pattern,
         preselect = private.config.completion.preselect,
+        view = require('cmp-kit.completion.ext.DefaultView').new({
+          icon_resolver = private.config.completion.icon_resolver,
+        })
       })
     end
     return private.completion.c[key]
@@ -304,7 +364,10 @@ function ix.get_completion_service(option)
     private.completion.i[key] = CompletionService.new({
       default_keyword_pattern = private.config.completion.default_keyword_pattern,
       preselect = private.config.completion.preselect,
-      expand_snippet = private.config.completion.expand_snippet,
+      expand_snippet = private.config.expand_snippet,
+      view = require('cmp-kit.completion.ext.DefaultView').new({
+        icon_resolver = private.config.completion.icon_resolver,
+      })
     })
   end
   return private.completion.i[key]
