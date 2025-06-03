@@ -138,7 +138,7 @@ do
   function action.signature_help.trigger()
     ---@type ix.Charmap.Callback
     return function(ctx)
-      ctx.signature_help.trigger()
+      ctx.signature_help.trigger({ force = true })
     end
   end
 

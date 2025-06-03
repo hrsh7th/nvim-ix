@@ -176,6 +176,20 @@ function ix.setup(config)
   end
   private.setup.dispose = {}
 
+  ---Setup commands.
+  ---@diagnostic disable-next-line: duplicate-set-field
+  vim.lsp.commands['editor.action.triggerParameterHints'] = function()
+    ix.do_action(function(ctx)
+      ctx.signature_help.trigger({ force = true })
+    end)
+  end
+  ---@diagnostic disable-next-line: duplicate-set-field
+  vim.lsp.commands['editor.action.triggerSuggest'] = function()
+    ix.do_action(function(ctx)
+      ctx.completion.complete({ force = true })
+    end)
+  end
+
   ---Setup char mapping.
   do
     vim.on_key(function(_, typed)
@@ -213,7 +227,7 @@ function ix.setup(config)
 
   ---Setup insert-mode trigger.
   do
-    local queue = misc.schedule_queue()
+    local queue = misc.autocmd_queue()
     table.insert(private.setup.dispose, misc.autocmd({ 'TextChangedI', 'CursorMovedI' }, {
       callback = function()
         local completion_service = ix.get_completion_service()
@@ -245,17 +259,7 @@ function ix.setup(config)
           end
           if not vim.tbl_contains({ 'i', 's' }, mode) then
             signature_help_service:clear()
-          end
-        end)
-      end
-    }))
-    table.insert(private.setup.dispose, vim.api.nvim_create_autocmd('ModeChanged', {
-      pattern = '*:s',
-      callback = function()
-        local signature_help_service = ix.get_signature_help_service()
-        queue.add(function()
-          local mode = vim.api.nvim_get_mode().mode
-          if mode == 's' and not signature_help_service:is_visible() then
+          elseif vim.tbl_contains({ 's' }, mode) then
             signature_help_service:trigger({ force = true })
           end
         end)
@@ -265,7 +269,7 @@ function ix.setup(config)
 
   ---Setup cmdline-mode trigger.
   do
-    local queue = misc.schedule_queue()
+    local queue = misc.autocmd_queue()
     table.insert(private.setup.dispose, misc.autocmd('CmdlineChanged', {
       callback = function()
         local completion_service = ix.get_completion_service()
@@ -283,8 +287,7 @@ function ix.setup(config)
         end)
       end
     }))
-    table.insert(private.setup.dispose, misc.autocmd('ModeChanged', {
-      pattern = 'c:*',
+    table.insert(private.setup.dispose, misc.autocmd('CmdlineLeave', {
       callback = function()
         local completion_service = ix.get_completion_service()
         local signature_help_service = ix.get_signature_help_service()
@@ -301,11 +304,14 @@ function ix.setup(config)
 
   ---Setup inesrt-mode service initialization.
   do
+    local queue = misc.autocmd_queue()
     table.insert(private.setup.dispose, misc.autocmd('BufEnter', {
       callback = function()
-        if private.config.attach.insert_mode then
-          private.config.attach.insert_mode()
-        end
+        queue.add(function()
+          if private.config.attach.insert_mode then
+            private.config.attach.insert_mode()
+          end
+        end)
       end
     }))
     if private.config.attach.insert_mode then
@@ -315,11 +321,17 @@ function ix.setup(config)
 
   ---Setup cmdline-mode service initialization.
   do
+    local queue = misc.autocmd_queue()
     table.insert(private.setup.dispose, misc.autocmd('CmdlineEnter', {
       callback = function()
-        if private.config.attach.cmdline_mode then
-          private.config.attach.cmdline_mode()
-        end
+        queue.add(function()
+          local mode = vim.api.nvim_get_mode().mode
+          if mode == 'c' then
+            if private.config.attach.cmdline_mode then
+              private.config.attach.cmdline_mode()
+            end
+          end
+        end)
       end
     }))
     if vim.api.nvim_get_mode().mode == 'c' then
@@ -331,7 +343,7 @@ function ix.setup(config)
 end
 
 ---Get current completion service.
----@param option? { recreate: boolean }
+---@param option? { recreate?: boolean }
 ---@return cmp-kit.completion.CompletionService
 function ix.get_completion_service(option)
   option = option or {}
@@ -374,7 +386,7 @@ function ix.get_completion_service(option)
 end
 
 ---Get current signature_help service.
----@param option? { recreate: boolean }
+---@param option? { recreate?: boolean }
 ---@return cmp-kit.signature_help.SignatureHelpService
 function ix.get_signature_help_service(option)
   option = option or {}
@@ -387,7 +399,9 @@ function ix.get_signature_help_service(option)
       if private.signature_help.c[key] then
         private.signature_help.c[key]:dispose()
       end
-      private.signature_help.c[key] = SignatureHelpService.new()
+      private.signature_help.c[key] = SignatureHelpService.new({
+        view = require('cmp-kit.signature_help.ext.DefaultView').new(),
+      })
     end
     return private.signature_help.c[key]
   end
@@ -398,7 +412,9 @@ function ix.get_signature_help_service(option)
     if private.signature_help.i[key] then
       private.signature_help.i[key]:dispose()
     end
-    private.signature_help.i[key] = SignatureHelpService.new()
+    private.signature_help.i[key] = SignatureHelpService.new({
+      view = require('cmp-kit.signature_help.ext.DefaultView').new(),
+    })
   end
   return private.signature_help.i[key]
 end
@@ -454,7 +470,7 @@ end
 ---@field commit fun(index: integer, option?: { replace: boolean, no_snippet: boolean }): boolean
 ---@class ix.API.SignatureHelp
 ---@field prevent fun(callback: fun())
----@field trigger fun()
+---@field trigger fun(option?: { force?: boolean })
 ---@field close fun()
 ---@field is_visible fun(): boolean
 ---@field get_active_signature_data fun(): cmp-kit.signature_help.ActiveSignatureData|nil
@@ -465,6 +481,10 @@ end
 ---@field signature_help ix.API.SignatureHelp
 ---@field schedule fun()
 ---@field feedkeys fun(keys: string, remap?: boolean)
+
+
+---Run ix action with given runner.
+---@param runner fun(ctx: ix.API)
 function ix.do_action(runner)
   local ctx
   ctx = {
@@ -510,8 +530,8 @@ function ix.do_action(runner)
         callback()
         resume()
       end,
-      trigger = function()
-        ix.get_signature_help_service():trigger({ force = true }):await()
+      trigger = function(option)
+        ix.get_signature_help_service():trigger(option):await()
       end,
       close = function()
         ix.get_signature_help_service():clear()
@@ -536,11 +556,9 @@ function ix.do_action(runner)
       Keymap.send({ { keys = keys, remap = not not remap } }):await()
     end,
   } --[[@as ix.API]]
-  if runner then
-    Async.run(function()
-      runner(ctx)
-    end)
-  end
+  Async.run(function()
+    runner(ctx)
+  end)
 end
 
 ---Get ix supported capabilities.

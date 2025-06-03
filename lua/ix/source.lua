@@ -68,12 +68,10 @@ function source.completion.attach_lsp(completion_service, option)
       )
     end
   end
-  completion_service:on_dispose(misc.autocmd('InsertEnter', {
-    callback = attach
-  }))
   completion_service:on_dispose(misc.autocmd('LspAttach', {
     callback = attach
   }))
+  attach()
 
   -- detach.
   completion_service:on_dispose(misc.autocmd('LspDetach', {
@@ -105,6 +103,7 @@ function source.signature_help.attach_lsp(signature_help_service, option)
     for _, client in ipairs(vim.lsp.get_clients({ bufnr = option.bufnr })) do
       if attached[client.id] then
         attached[client.id]()
+        attached[client.id] = nil
       end
       attached[client.id] = signature_help_service:register_source(
         require('cmp-kit.signature_help.ext.source.lsp.signature_help')({ client = client }),
@@ -115,12 +114,10 @@ function source.signature_help.attach_lsp(signature_help_service, option)
       )
     end
   end
-  signature_help_service:on_dispose(misc.autocmd('InsertEnter', {
-    callback = attach
-  }))
   signature_help_service:on_dispose(misc.autocmd('LspAttach', {
     callback = attach
   }))
+  attach()
 
   -- detach.
   signature_help_service:on_dispose(misc.autocmd('LspDetach', {
