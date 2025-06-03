@@ -104,9 +104,8 @@ do
   ix.charmap('i', '<Up>', ix.action.completion.select_prev())
   ix.charmap('i', '<C-y>', ix.action.completion.commit({ select_first = true, replace = true, no_snippet = true }))
 
-  ix.charmap('i', '<C-o>', ix.action.signature_help.trigger())
-  ix.charmap('i', '<C-j>', ix.action.signature_help.select_next())
-  ix.charmap('i', '<C-k>', ix.action.signature_help.select_prev())
+  ix.charmap({ 'i', 's' }, '<C-o>', ix.action.signature_help.trigger())
+  ix.charmap({ 'i', 's' }, '<C-j>', ix.action.signature_help.select_next())
 end
 ```
 

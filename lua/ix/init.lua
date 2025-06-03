@@ -420,7 +420,7 @@ function ix.get_signature_help_service(option)
 end
 
 ---Setup character mapping.
----@param mode 'i' | 'c' | ('i' | 'c')[]
+---@param mode 'i' | 'c' | 's' | ('i' | 'c' | 's')[]
 ---@param char string
 ---@param callback fun(api: ix.API, fallback: fun())
 function ix.charmap(mode, char, callback)
