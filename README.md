@@ -2,6 +2,9 @@
 
 insert mode enhancement plugin for Neovim
 
+<a href="LICENSE.md"><img alt="Software License" src="https://img.shields.io/badge/license-Anti%20996-brightgreen.svg?style=flat-square"></a>
+<a href="https://deepwiki.com/hrsh7th/nvim-ix"><img src="https://deepwiki.com/badge.svg" alt="DeepWiki"></a>
+
 **API Stability Warning**
 
 _The API is not yet stable. If you have made any advanced customizations, they
@@ -104,7 +107,7 @@ do
   ix.charmap('i', '<Up>', ix.action.completion.select_prev())
   ix.charmap('i', '<C-y>', ix.action.completion.commit({ select_first = true, replace = true, no_snippet = true }))
 
-  ix.charmap({ 'i', 's' }, '<C-o>', ix.action.signature_help.trigger())
+  ix.charmap({ 'i', 's' }, '<C-o>', ix.action.signature_help.trigger_or_close())
   ix.charmap({ 'i', 's' }, '<C-j>', ix.action.signature_help.select_next())
 end
 ```

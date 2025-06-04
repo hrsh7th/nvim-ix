@@ -142,6 +142,26 @@ do
     end
   end
 
+  ---Close signature help.
+  function action.signature_help.close()
+    ---@type ix.Charmap.Callback
+    return function(ctx)
+      ctx.signature_help.close()
+    end
+  end
+
+  ---Trigger or close signature help.
+  function action.signature_help.trigger_or_close()
+    ---@type ix.Charmap.Callback
+    return function(ctx)
+      if ctx.signature_help.is_visible() then
+        ctx.signature_help.close()
+      else
+        ctx.signature_help.trigger({ force = true })
+      end
+    end
+  end
+
   ---Select next signature help item.
   function action.signature_help.select_next()
     ---@type ix.Charmap.Callback
