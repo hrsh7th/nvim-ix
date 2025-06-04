@@ -35,7 +35,7 @@ processing, achieving both stability and advanced features.
     - `lsp.completion`: Completion candidates from LSP servers.
   - **SignatureHelp**
     - `lsp.signature_help`: Signature help from LSP servers.
-- **Keymapping**: `ix.charmap` for setting up keybindings with reduced
+- **Key-mapping**: `ix.charmap` for setting up keybindings with reduced
   conflicts.
 - **Pretty Markdown Rendering**: Completion documentation / Signature Help
   rendering.
@@ -113,14 +113,18 @@ end
 
 `ix.get_capabilities()` is returning LSP Capabilities that `nvim-ix` supports.
 
+The LSP specification defines the concept of `capabilities`, which an `editor` can use to inform the server that it supports the features defined in the LSP.
+
+`nvim-ix` supports a variety of features related to completion and signature help, so please inform the LSP server.
+
 **Snippet Engine Integration**:
 
 Specify your snippet engine's expansion function with the `expand_snippet`
 option. If not provided, snippet-related functionalities will be disabled.
 
-**Keymapping with `ix.charmap`**
+**Key-mapping with `ix.charmap`**
 
-`ix.charmap` is a utility for easily setting up keymappings for the plugin's
+`ix.charmap` is a utility for easily setting up key-mappings for the plugin's
 main operations. It helps avoid key conflicts with other plugins.
 
 **`ix.setup({ ... })` reference**
@@ -257,7 +261,7 @@ a snippet). `ix.charmap` aims to handle `nvim-ix` actions for these keys with
 higher precedence than other mappings, reducing conflicts and ensuring reliable
 behavior.
 
-**How can I set up keymappings without using `ix.charmap`?**
+**How can I set up key-mappings without using `ix.charmap`?**
 
 You can use `ix.do_action` for this.
 
