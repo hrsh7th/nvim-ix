@@ -41,6 +41,105 @@ local private = {
   }
 }
 
+local default_config = {
+  ---Expand snippet function.
+  ---@type nil|cmp-kit.completion.ExpandSnippet
+  expand_snippet = nil,
+
+  ---Completion configuration.
+  completion = {
+
+    ---Enable/disable auto completion.
+    ---@type boolean
+    auto = true,
+
+    ---Enable/disable LSP's preselect feature.
+    ---@type boolean
+    preselect = false,
+
+    ---Default keyword pattern for completion.
+    ---@type string
+    default_keyword_pattern = require('cmp-kit.completion.ext.DefaultConfig').default_keyword_pattern,
+
+    ---Resolve LSP's CompletionItemKind to icons.
+    ---@type nil|fun(kind: cmp-kit.kit.LSP.CompletionItemKind): { [1]: string, [2]?: string }?
+    icon_resolver = (function()
+      local cache = {}
+
+      local CompletionItemKindLookup = {}
+      for k, v in pairs(LSP.CompletionItemKind) do
+        CompletionItemKindLookup[v] = k
+      end
+
+      local mini_icons = { pcall(require, 'mini.icons') }
+      local function update()
+        if mini_icons[1] then
+          return
+        end
+        mini_icons = { pcall(require, 'mini.icons') }
+      end
+      vim.api.nvim_create_autocmd({ 'BufEnter', 'CmdlineEnter' }, {
+        callback = update,
+      })
+
+      -- mini.icons
+      ---@param completion_item_kind cmp-kit.kit.LSP.CompletionItemKind
+      ---@return { [1]: string, [2]?: string }?
+      return function(completion_item_kind)
+        if mini_icons[1] then
+          if not cache[completion_item_kind] then
+            local kind = CompletionItemKindLookup[completion_item_kind] or 'text'
+            cache[completion_item_kind] = { mini_icons[2].get('lsp', kind:lower()) }
+          end
+          return cache[completion_item_kind]
+        end
+        return { '', '' }
+      end
+    end)(),
+  },
+
+  ---Signature help configuration.
+  signature_help = {
+
+    ---Auto trigger signature help.
+    ---@type boolean
+    auto = true,
+
+  },
+
+  ---Attach services for each per modes.
+  attach = {
+    ---Insert mode service initialization.
+    ---NOTE: This is an advanced feature and is subject to breaking changes as the API is not yet stable.
+    ---@type fun(): nil
+    insert_mode = function()
+      do
+        local service = ix.get_completion_service({ recreate = true })
+        service:register_source(ix.source.completion.calc(), { group = 1 })
+        service:register_source(ix.source.completion.path(), { group = 10 })
+        ix.source.completion.attach_lsp(service, { group = 20 })
+        service:register_source(ix.source.completion.buffer(), { group = 100 })
+      end
+      do
+        local service = ix.get_signature_help_service({ recreate = true })
+        ix.source.signature_help.attach_lsp(service)
+      end
+    end,
+    ---Cmdline mode service initialization.
+    ---NOTE: This is an advanced feature and is subject to breaking changes as the API is not yet stable.
+    ---@type fun(): nil
+    cmdline_mode = function()
+      local service = ix.get_completion_service({ recreate = true })
+      if vim.tbl_contains({ '/', '?' }, vim.fn.getcmdtype()) then
+        service:register_source(ix.source.completion.buffer(), { group = 1 })
+      elseif vim.fn.getcmdtype() == ':' then
+        service:register_source(ix.source.completion.path(), { group = 1 })
+        service:register_source(ix.source.completion.cmdline(), { group = 10 })
+      end
+    end,
+  }
+} --[[@as ix.SetupOption]]
+
 ---@class ix.SetupOption.Completion
 ---@field public auto? boolean
 ---@field public default_keyword_pattern? string
@@ -63,94 +162,7 @@ local private = {
 ---Setup ix module.
 ---@param config? ix.SetupOption
 function ix.setup(config)
-  private.config = kit.merge(config or {}, {
-    ---Expand snippet function.
-    ---@type nil|cmp-kit.completion.ExpandSnippet
-    expand_snippet = nil,
-
-    ---Completion configuration.
-    completion = {
-
-      ---Enable/disable auto completion.
-      ---@type boolean
-      auto = true,
-
-      ---Enable/disable LSP's preselect feature.
-      ---@type boolean
-      preselect = false,
-
-      ---Default keyword pattern for completion.
-      ---@type string
-      default_keyword_pattern = require('cmp-kit.completion.ext.DefaultConfig').default_keyword_pattern,
-
-      ---Resolve LSP's CompletionItemKind to icons.
-      ---@type nil|fun(kind: cmp-kit.kit.LSP.CompletionItemKind): { [1]: string, [2]?: string }?
-      icon_resolver = (function()
-        local cache = {}
-
-        local CompletionItemKindLookup = {}
-        for k, v in pairs(LSP.CompletionItemKind) do
-          CompletionItemKindLookup[v] = k
-        end
-
-        -- mini.icons
-        local ok, MiniIcons = pcall(require, 'mini.icons')
-        if ok and MiniIcons then
-          ---@param completion_item_kind cmp-kit.kit.LSP.CompletionItemKind
-          ---@return { [1]: string, [2]?: string }?
-          return function(completion_item_kind)
-            if not cache[completion_item_kind] then
-              local kind = CompletionItemKindLookup[completion_item_kind] or 'text'
-              cache[completion_item_kind] = { MiniIcons.get('lsp', kind:lower()) }
-            end
-            return cache[completion_item_kind]
-          end
-        end
-        return nil
-      end)(),
-    },
-
-    ---Signature help configuration.
-    signature_help = {
-
-      ---Auto trigger signature help.
-      ---@type boolean
-      auto = true,
-
-    },
-
-    ---Attach services for each per modes.
-    attach = {
-      ---Insert mode service initialization.
-      ---NOTE: This is an advanced feature and is subject to breaking changes as the API is not yet stable.
-      ---@type fun(): nil
-      insert_mode = function()
-        do
-          local service = ix.get_completion_service({ recreate = true })
-          service:register_source(ix.source.completion.calc(), { group = 1 })
-          service:register_source(ix.source.completion.path(), { group = 10 })
-          ix.source.completion.attach_lsp(service, { group = 20 })
-          service:register_source(ix.source.completion.buffer(), { group = 100 })
-        end
-        do
-          local service = ix.get_signature_help_service({ recreate = true })
-          ix.source.signature_help.attach_lsp(service)
-        end
-      end,
-      ---Cmdline mode service initialization.
-      ---NOTE: This is an advanced feature and is subject to breaking changes as the API is not yet stable.
-      ---@type fun(): nil
-      cmdline_mode = function()
-        local service = ix.get_completion_service({ recreate = true })
-        if vim.tbl_contains({ '/', '?' }, vim.fn.getcmdtype()) then
-          service:register_source(ix.source.completion.buffer(), { group = 1 })
-        elseif vim.fn.getcmdtype() == ':' then
-          service:register_source(ix.source.completion.path(), { group = 1 })
-          service:register_source(ix.source.completion.cmdline(), { group = 10 })
-        end
-      end,
-    }
-  } --[[@as ix.SetupOption]])
+  private.config = kit.merge(config or {}, default_config)
 
   -- Dispose existing services.
   for k, service in pairs(private.completion.i) do
