@@ -562,7 +562,6 @@ function ix.do_action(runner)
 end
 
 ---Get ix supported capabilities.
----@return table
 function ix.get_capabilities()
   return {
     textDocument = {
@@ -620,7 +619,7 @@ function ix.get_capabilities()
         contextSupport = true,
       }
     },
-  }
+  } --[[@as cmp-kit.kit.LSP.ClientCapabilities]]
 end
 
 return ix
