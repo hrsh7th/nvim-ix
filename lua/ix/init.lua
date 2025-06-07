@@ -6,7 +6,7 @@ local Keymap = require('cmp-kit.kit.Vim.Keymap')
 local CompletionService = require('cmp-kit.completion.CompletionService')
 local SignatureHelpService = require('cmp-kit.signature_help.SignatureHelpService')
 
----@alias ix.Charmap.Callback fun(api: ix.API, fallback: fun())
+---@alias ix.Charmap.Callback fun(fallback: fun())
 
 ---@class ix.Charmap
 ---@field mode string[]
@@ -45,6 +45,12 @@ local default_config = {
   ---Expand snippet function.
   ---@type nil|cmp-kit.completion.ExpandSnippet
   expand_snippet = nil,
+
+  ---Check if macro is executing or not.
+  ---@type fun(): boolean
+  is_macro_executing = function()
+    return vim.fn.reg_executing() ~= ''
+  end,
 
   ---Completion configuration.
   completion = {
@@ -155,6 +161,7 @@ local default_config = {
 ---
 ---@class ix.SetupOption
 ---@field public expand_snippet? cmp-kit.completion.ExpandSnippet
+---@field public is_macro_executing? fun(): boolean
 ---@field public completion? ix.SetupOption.Completion
 ---@field public signature_help? ix.SetupOption.SignatureHelp
 ---@field public attach? ix.SetupOption.Attach
@@ -227,10 +234,11 @@ function ix.setup(config)
         end
       end
 
-      ix.do_action(function(ctx)
-        charmap.callback(ctx, function()
-          Keymap.send({ keys = charmap.char, remap = true }):await()
-        end)
+      charmap.callback(function()
+        local task = Keymap.send({ keys = charmap.char, remap = true })
+        if Async.in_context() then
+          task:await()
+        end
       end)
 
       return ''
@@ -354,6 +362,12 @@ function ix.setup(config)
   end
 end
 
+---Get default configuration.
+---@return ix.SetupOption
+function ix.get_default_config()
+  return kit.merge({}, default_config)
+end
+
 ---Get current completion service.
 ---@param option? { recreate?: boolean }
 ---@return cmp-kit.completion.CompletionService
@@ -369,6 +383,7 @@ function ix.get_completion_service(option)
         private.completion.c[key]:dispose()
       end
       private.completion.c[key] = CompletionService.new({
+        sync_mode = private.config.is_macro_executing,
         default_keyword_pattern = private.config.completion.default_keyword_pattern,
         preselect = private.config.completion.preselect,
         view = require('cmp-kit.completion.ext.DefaultView').new({
@@ -386,9 +401,10 @@ function ix.get_completion_service(option)
       private.completion.i[key]:dispose()
     end
     private.completion.i[key] = CompletionService.new({
+      sync_mode = private.config.is_macro_executing,
+      expand_snippet = private.config.expand_snippet,
       default_keyword_pattern = private.config.completion.default_keyword_pattern,
       preselect = private.config.completion.preselect,
-      expand_snippet = private.config.expand_snippet,
       view = require('cmp-kit.completion.ext.DefaultView').new({
         icon_resolver = private.config.completion.icon_resolver,
       })
@@ -434,7 +450,7 @@ end
 ---Setup character mapping.
 ---@param mode 'i' | 'c' | 's' | ('i' | 'c' | 's')[]
 ---@param char string
----@param callback fun(api: ix.API, fallback: fun())
+---@param callback ix.Charmap.Callback
 function ix.charmap(mode, char, callback)
   local l = 0
   local i = 1
@@ -497,6 +513,7 @@ end
 
 ---Run ix action with given runner.
 ---@param runner fun(ctx: ix.API)
+---@return cmp-kit.kit.Async.AsyncTask
 function ix.do_action(runner)
   local ctx
   ctx = {
@@ -568,7 +585,7 @@ function ix.do_action(runner)
       Keymap.send({ { keys = keys, remap = not not remap } }):await()
     end,
   } --[[@as ix.API]]
-  Async.run(function()
+  return Async.run(function()
     runner(ctx)
   end)
 end
