@@ -447,43 +447,63 @@ function ix.get_signature_help_service(option)
   return private.signature_help.i[key]
 end
 
----Setup character mapping.
----@param mode 'i' | 'c' | 's' | ('i' | 'c' | 's')[]
----@param char string
----@param callback ix.Charmap.Callback
-function ix.charmap(mode, char, callback)
-  local l = 0
-  local i = 1
-  local n = false
-  while i <= #char do
-    local c = char:sub(i, i)
-    if c == '<' then
-      n = true
-    elseif c == '\\' then
-      i = i + 1
-    else
-      if n then
-        if c == '>' then
-          n = false
-          l = l + 1
-        end
-      else
-        l = l + 1
+---@class ix.CharmapApi
+---@field del fun(mode: string|string[], char: string)
+---@field set fun(mode: string|string[], char: string, callback: ix.Charmap.Callback)
+---@type ix.CharmapApi
+ix.charmap = setmetatable({
+  del = function(mode, char)
+    for i = #private.charmaps, 1, -1 do
+      local charmap = private.charmaps[i]
+      if vim.tbl_contains(charmap.mode, mode) and charmap.char == vim.keycode(char) then
+        table.remove(private.charmaps, i)
       end
     end
-    i = i + 1
-  end
+  end,
+  set = function(mode, char, callback)
+    local l = 0
+    local i = 1
+    local n = false
+    while i <= #char do
+      local c = char:sub(i, i)
+      if c == '<' then
+        n = true
+      elseif c == '\\' then
+        i = i + 1
+      else
+        if n then
+          if c == '>' then
+            n = false
+            l = l + 1
+          end
+        else
+          l = l + 1
+        end
+      end
+      i = i + 1
+    end
 
-  if l > 1 then
-    error('`ix.charmap` does not support multiple key sequence')
-  end
+    if l > 1 then
+      error('`ix.charmap` does not support multiple key sequence')
+    end
 
-  table.insert(private.charmaps, {
-    mode = kit.to_array(mode),
-    char = vim.keycode(char),
-    callback = callback,
-  })
-end
+    table.insert(private.charmaps, {
+      mode = kit.to_array(mode),
+      char = vim.keycode(char),
+      callback = callback,
+    })
+  end
+}, {
+  __call = function(_, mode, char, callback)
+    vim.deprecate(
+      'ix.charmap(...)',
+      'ix.charmap.set(...)',
+      '1.0.0',
+      'nvim-ix'
+    )
+    ix.charmap.set(mode, char, callback)
+  end
+})
 
 ---Run ix action in async-context.
 ---@class ix.API.Completion

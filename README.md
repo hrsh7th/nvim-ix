@@ -94,21 +94,21 @@ ix.setup({
 
 -- Setup keymaps (Using `ix.charmap`; See below).
 do
-  ix.charmap({ 'i', 'c' }, '<C-d>', ix.action.scroll(0 + 3))
-  ix.charmap({ 'i', 'c' }, '<C-u>', ix.action.scroll(0 - 3))
+  vim.keymap.set({ 'i', 'c' }, '<C-d>', ix.action.scroll(0 + 3))
+  vim.keymap.set({ 'i', 'c' }, '<C-u>', ix.action.scroll(0 - 3))
 
-  ix.charmap({ 'i', 'c' }, '<C-Space>', ix.action.completion.complete())
-  ix.charmap({ 'i', 'c' }, '<C-n>', ix.action.completion.select_next())
-  ix.charmap({ 'i', 'c' }, '<C-p>', ix.action.completion.select_prev())
-  ix.charmap({ 'i', 'c' }, '<C-e>', ix.action.completion.close())
-  ix.charmap('c', '<CR>', ix.action.completion.commit_cmdline())
-  ix.charmap('i', '<CR>', ix.action.completion.commit({ select_first = true }))
-  ix.charmap('i', '<Down>', ix.action.completion.select_next())
-  ix.charmap('i', '<Up>', ix.action.completion.select_prev())
-  ix.charmap('i', '<C-y>', ix.action.completion.commit({ select_first = true, replace = true, no_snippet = true }))
+  vim.keymap.set({ 'i', 'c' }, '<C-Space>', ix.action.completion.complete())
+  vim.keymap.set({ 'i', 'c' }, '<C-n>', ix.action.completion.select_next())
+  vim.keymap.set({ 'i', 'c' }, '<C-p>', ix.action.completion.select_prev())
+  vim.keymap.set({ 'i', 'c' }, '<C-e>', ix.action.completion.close())
+  ix.charmap.set('c', '<CR>', ix.action.completion.commit_cmdline())
+  ix.charmap.set('i', '<CR>', ix.action.completion.commit({ select_first = true }))
+  vim.keymap.set('i', '<Down>', ix.action.completion.select_next())
+  vim.keymap.set('i', '<Up>', ix.action.completion.select_prev())
+  vim.keymap.set('i', '<C-y>', ix.action.completion.commit({ select_first = true, replace = true, no_snippet = true }))
 
-  ix.charmap({ 'i', 's' }, '<C-o>', ix.action.signature_help.trigger_or_close())
-  ix.charmap({ 'i', 's' }, '<C-j>', ix.action.signature_help.select_next())
+  vim.keymap.set({ 'i', 's' }, '<C-o>', ix.action.signature_help.trigger_or_close())
+  vim.keymap.set({ 'i', 's' }, '<C-j>', ix.action.signature_help.select_next())
 end
 ```
 
@@ -116,9 +116,11 @@ end
 
 `ix.get_capabilities()` is returning LSP Capabilities that `nvim-ix` supports.
 
-The LSP specification defines the concept of `capabilities`, which an `editor` can use to inform the server that it supports the features defined in the LSP.
+The LSP specification defines the concept of `capabilities`, which an `editor`
+can use to inform the server that it supports the features defined in the LSP.
 
-`nvim-ix` supports a variety of features related to completion and signature help, so please inform the LSP server.
+`nvim-ix` supports a variety of features related to completion and signature
+help, so please inform the LSP server.
 
 **Snippet Engine Integration**:
 
