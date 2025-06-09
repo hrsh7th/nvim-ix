@@ -10,10 +10,14 @@ source.completion = {}
 ---@return cmp-kit.completion.CompletionSource
 function source.completion.buffer(option)
   return require('cmp-kit.completion.ext.source.buffer')(kit.merge(option or {}, {
+    get_bufnrs = function()
+      local bufs = {}
+      for _, win in ipairs(vim.api.nvim_list_wins()) do
+        table.insert(bufs, vim.api.nvim_win_get_buf(win))
+      end
+      return bufs
+    end,
     gather_keyword_length = 3,
-    label_details = {
-      description = 'buffer'
-    }
   } --[[@as cmp-kit.completion.ext.source.buffer.Option]]))
 end
 

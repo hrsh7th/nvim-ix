@@ -201,12 +201,14 @@ function ix.setup(config)
     ix.do_action(function(ctx)
       ctx.signature_help.trigger({ force = true })
     end)
+    return {}
   end
   ---@diagnostic disable-next-line: duplicate-set-field
   vim.lsp.commands['editor.action.triggerSuggest'] = function()
     ix.do_action(function(ctx)
       ctx.completion.complete({ force = true })
     end)
+    return {}
   end
 
   ---Setup char mapping.
