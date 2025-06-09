@@ -390,6 +390,7 @@ function ix.get_completion_service(option)
         preselect = private.config.completion.preselect,
         view = require('cmp-kit.completion.ext.DefaultView').new({
           icon_resolver = private.config.completion.icon_resolver,
+          use_source_name_column = true,
         })
       })
     end
@@ -409,6 +410,7 @@ function ix.get_completion_service(option)
       preselect = private.config.completion.preselect,
       view = require('cmp-kit.completion.ext.DefaultView').new({
         icon_resolver = private.config.completion.icon_resolver,
+        use_source_name_column = true,
       })
     })
   end
