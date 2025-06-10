@@ -6,6 +6,7 @@ do
   function action.scroll(delta)
     ---@type ix.Charmap.Callback
     return function(fallback)
+      fallback = fallback or function() end
       require('ix').do_action(function(ctx)
         local exec = false
         if ctx.completion.is_docs_visible() then
@@ -46,6 +47,7 @@ do
 
     ---@type ix.Charmap.Callback
     return function(fallback)
+      fallback = fallback or function() end
       require('ix').do_action(function(ctx)
         local selection = ctx.completion.get_selection()
         if selection then
@@ -65,6 +67,7 @@ do
 
     ---@type ix.Charmap.Callback
     return function(fallback)
+      fallback = fallback or function() end
       require('ix').do_action(function(ctx)
         local selection = ctx.completion.get_selection()
         if selection then
@@ -86,6 +89,7 @@ do
 
     ---@type ix.Charmap.Callback
     return function(fallback)
+      fallback = fallback or function() end
       require('ix').do_action(function(ctx)
         local selection = ctx.completion.get_selection()
         if selection then
@@ -120,6 +124,7 @@ do
   function action.completion.close()
     ---@type ix.Charmap.Callback
     return function(fallback)
+      fallback = fallback or function() end
       require('ix').do_action(function(ctx)
         if ctx.completion.is_menu_visible() then
           ctx.completion.close()
@@ -135,6 +140,7 @@ do
   function action.completion.scroll_docs(delta)
     ---@type ix.Charmap.Callback
     return function(fallback)
+      fallback = fallback or function() end
       require('ix').do_action(function(ctx)
         if ctx.completion.is_docs_visible() then
           ctx.completion.scroll_docs(delta)
@@ -188,6 +194,7 @@ do
   function action.signature_help.select_next()
     ---@type ix.Charmap.Callback
     return function(fallback)
+      fallback = fallback or function() end
       require('ix').do_action(function(ctx)
         if ctx.signature_help.is_visible() then
           local data = ctx.signature_help.get_active_signature_data()
@@ -209,6 +216,7 @@ do
   function action.signature_help.select_prev()
     ---@type ix.Charmap.Callback
     return function(fallback)
+      fallback = fallback or function() end
       require('ix').do_action(function(ctx)
         if ctx.signature_help.is_visible() then
           local data = ctx.signature_help.get_active_signature_data()
@@ -230,6 +238,7 @@ do
   function action.signature_help.scroll(delta)
     ---@type ix.Charmap.Callback
     return function(fallback)
+      fallback = fallback or function() end
       require('ix').do_action(function(ctx)
         if ctx.signature_help.is_visible() then
           ctx.signature_help.scroll(delta)

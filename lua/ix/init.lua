@@ -235,14 +235,12 @@ function ix.setup(config)
         end
       end
 
-      local fallback = function()
+      charmap.callback(function()
         local task = Keymap.send({ keys = charmap.char, remap = true })
         if Async.in_context() then
           task:await()
         end
-      end
-
-      charmap.callback(fallback)
+      end)
 
       return ''
     end, vim.api.nvim_create_namespace('ix'), {})
