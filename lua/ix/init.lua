@@ -119,12 +119,15 @@ local default_config = {
     ---NOTE: This is an advanced feature and is subject to breaking changes as the API is not yet stable.
     ---@type fun(): nil
     insert_mode = function()
+      if vim.bo.buftype == 'nofile' then
+        return
+      end
       do
         local service = ix.get_completion_service({ recreate = true })
         service:register_source(ix.source.completion.calc(), { group = 1 })
         service:register_source(ix.source.completion.path(), { group = 10 })
         ix.source.completion.attach_lsp(service, { group = 20 })
-        service:register_source(ix.source.completion.buffer(), { group = 100 })
+        service:register_source(ix.source.completion.buffer(), { group = 20, dedup = true })
       end
       do
         local service = ix.get_signature_help_service({ recreate = true })
