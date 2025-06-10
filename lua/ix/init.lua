@@ -219,7 +219,6 @@ function ix.setup(config)
       end
       local mode = vim.api.nvim_get_mode().mode
 
-
       -- find charmap.
       local charmap = vim.iter(private.charmaps):find(function(charmap)
         return vim.tbl_contains(charmap.mode, mode) and vim.fn.keytrans(typed) == vim.fn.keytrans(charmap.char)
@@ -236,12 +235,14 @@ function ix.setup(config)
         end
       end
 
-      charmap.callback(function()
+      local fallback = function()
         local task = Keymap.send({ keys = charmap.char, remap = true })
         if Async.in_context() then
           task:await()
         end
-      end)
+      end
+
+      charmap.callback(fallback)
 
       return ''
     end, vim.api.nvim_create_namespace('ix'), {})
@@ -451,63 +452,57 @@ function ix.get_signature_help_service(option)
   return private.signature_help.i[key]
 end
 
----@class ix.CharmapApi
----@field del fun(mode: string|string[], char: string)
----@field set fun(mode: string|string[], char: string, callback: ix.Charmap.Callback)
----@type ix.CharmapApi
-ix.charmap = setmetatable({
-  del = function(mode, char)
-    for i = #private.charmaps, 1, -1 do
-      local charmap = private.charmaps[i]
-      if vim.tbl_contains(charmap.mode, mode) and charmap.char == vim.keycode(char) then
-        table.remove(private.charmaps, i)
-      end
+ix.charmap = {}
+
+---Del charmap.
+---@param mode string|string[]
+---@param char string
+function ix.charmap.del(mode, char)
+  for i = #private.charmaps, 1, -1 do
+    local charmap = private.charmaps[i]
+    if vim.tbl_contains(charmap.mode, mode) and charmap.char == vim.keycode(char) then
+      table.remove(private.charmaps, i)
     end
-  end,
-  set = function(mode, char, callback)
-    local l = 0
-    local i = 1
-    local n = false
-    while i <= #char do
-      local c = char:sub(i, i)
-      if c == '<' then
-        n = true
-      elseif c == '\\' then
-        i = i + 1
-      else
-        if n then
-          if c == '>' then
-            n = false
-            l = l + 1
-          end
-        else
+  end
+end
+
+---Set charmap.
+---@param mode string|string[]
+---@param char string
+---@param callback ix.Charmap.Callback
+function ix.charmap.set(mode, char, callback)
+  local l = 0
+  local i = 1
+  local n = false
+  while i <= #char do
+    local c = char:sub(i, i)
+    if c == '<' then
+      n = true
+    elseif c == '\\' then
+      i = i + 1
+    else
+      if n then
+        if c == '>' then
+          n = false
           l = l + 1
         end
+      else
+        l = l + 1
       end
-      i = i + 1
     end
-
-    if l > 1 then
-      error('`ix.charmap` does not support multiple key sequence')
-    end
-
-    table.insert(private.charmaps, {
-      mode = kit.to_array(mode),
-      char = vim.keycode(char),
-      callback = callback,
-    })
+    i = i + 1
   end
-}, {
-  __call = function(_, mode, char, callback)
-    vim.deprecate(
-      'ix.charmap(...)',
-      'ix.charmap.set(...)',
-      '1.0.0',
-      'nvim-ix'
-    )
-    ix.charmap.set(mode, char, callback)
+
+  if l > 1 then
+    error('`ix.charmap` does not support multiple key sequence')
   end
-})
+
+  table.insert(private.charmaps, {
+    mode = kit.to_array(mode),
+    char = vim.keycode(char),
+    callback = callback,
+  })
+end
 
 ---Run ix action in async-context.
 ---@class ix.API.Completion
