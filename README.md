@@ -147,6 +147,18 @@ ix.setup({
   ---@type nil|cmp-kit.completion.ExpandSnippet
   expand_snippet = nil,
 
+  ---Check if macro is executing or not.
+  ---@type fun(): boolean
+  is_macro_executing = function()
+    return vim.fn.reg_executing() ~= ''
+  end,
+
+  ---Check if macro is recording or not.
+  ---@type fun(): boolean
+  is_macro_recording = function()
+    return vim.fn.reg_recording() ~= ''
+  end,
+
   ---Completion configuration.
   completion = {
 
@@ -172,20 +184,30 @@ ix.setup({
         CompletionItemKindLookup[v] = k
       end
 
-      -- For mini.icons
-      local ok, MiniIcons = pcall(require, 'mini.icons')
-      if ok and MiniIcons then
-        ---@param completion_item_kind cmp-kit.kit.LSP.CompletionItemKind
-        ---@return { [1]: string, [2]?: string }?
-        return function(completion_item_kind)
+      local mini_icons = { pcall(require, 'mini.icons') }
+      local function update()
+        if mini_icons[1] then
+          return
+        end
+        mini_icons = { pcall(require, 'mini.icons') }
+      end
+      vim.api.nvim_create_autocmd({ 'BufEnter', 'CmdlineEnter' }, {
+        callback = update,
+      })
+
+      -- mini.icons
+      ---@param completion_item_kind cmp-kit.kit.LSP.CompletionItemKind
+      ---@return { [1]: string, [2]?: string }?
+      return function(completion_item_kind)
+        if mini_icons[1] then
           if not cache[completion_item_kind] then
             local kind = CompletionItemKindLookup[completion_item_kind] or 'text'
-            cache[completion_item_kind] = { MiniIcons.get('lsp', kind:lower()) }
+            cache[completion_item_kind] = { mini_icons[2].get('lsp', kind:lower()) }
           end
           return cache[completion_item_kind]
         end
+        return { '', '' }
       end
-      return nil
     end)(),
   },
 
@@ -200,24 +222,25 @@ ix.setup({
 
   ---Attach services for each per modes.
   attach = {
-
     ---Insert mode service initialization.
     ---NOTE: This is an advanced feature and is subject to breaking changes as the API is not yet stable.
     ---@type fun(): nil
     insert_mode = function()
+      if vim.bo.buftype == 'nofile' then
+        return
+      end
       do
         local service = ix.get_completion_service({ recreate = true })
         service:register_source(ix.source.completion.calc(), { group = 1 })
         service:register_source(ix.source.completion.path(), { group = 10 })
         ix.source.completion.attach_lsp(service, { group = 20 })
-        service:register_source(ix.source.completion.buffer(), { group = 100 })
+        service:register_source(ix.source.completion.buffer(), { group = 20, dedup = true })
       end
       do
         local service = ix.get_signature_help_service({ recreate = true })
         ix.source.signature_help.attach_lsp(service)
       end
     end,
-
     ---Cmdline mode service initialization.
     ---NOTE: This is an advanced feature and is subject to breaking changes as the API is not yet stable.
     ---@type fun(): nil
@@ -230,7 +253,6 @@ ix.setup({
         service:register_source(ix.source.completion.cmdline(), { group = 10 })
       end
     end,
-
   }
 })
 ```
