@@ -52,6 +52,12 @@ local default_config = {
     return vim.fn.reg_executing() ~= ''
   end,
 
+  ---Check if macro is recording or not.
+  ---@type fun(): boolean
+  is_macro_recording = function()
+    return vim.fn.reg_recording() ~= ''
+  end,
+
   ---Completion configuration.
   completion = {
 
@@ -165,6 +171,7 @@ local default_config = {
 ---@class ix.SetupOption
 ---@field public expand_snippet? cmp-kit.completion.ExpandSnippet
 ---@field public is_macro_executing? fun(): boolean
+---@field public is_macro_recording? fun(): boolean
 ---@field public completion? ix.SetupOption.Completion
 ---@field public signature_help? ix.SetupOption.SignatureHelp
 ---@field public attach? ix.SetupOption.Attach
@@ -387,7 +394,8 @@ function ix.get_completion_service(option)
         private.completion.c[key]:dispose()
       end
       private.completion.c[key] = CompletionService.new({
-        sync_mode = private.config.is_macro_executing,
+        is_macro_executing = private.config.is_macro_executing,
+        is_macro_recording = private.config.is_macro_recording,
         default_keyword_pattern = private.config.completion.default_keyword_pattern,
         preselect = private.config.completion.preselect,
         view = require('cmp-kit.completion.ext.DefaultView').new({
@@ -406,7 +414,8 @@ function ix.get_completion_service(option)
       private.completion.i[key]:dispose()
     end
     private.completion.i[key] = CompletionService.new({
-      sync_mode = private.config.is_macro_executing,
+      is_macro_executing = private.config.is_macro_executing,
+      is_macro_recording = private.config.is_macro_recording,
       expand_snippet = private.config.expand_snippet,
       default_keyword_pattern = private.config.completion.default_keyword_pattern,
       preselect = private.config.completion.preselect,
@@ -565,7 +574,7 @@ function ix.do_action(runner)
         ix.get_completion_service():scroll_docs(delta)
       end,
       commit = function(index, option)
-        local match = ix.get_completion_service():get_match_at(index)
+        local match = ix.get_completion_service():get_matches()[index]
         if match then
           ix.get_completion_service():commit(match.item, option):await()
           return true
