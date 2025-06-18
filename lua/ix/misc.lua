@@ -21,16 +21,17 @@ end
 
 function misc.autocmd_queue()
   local scheduling = false
-  local queue = {}
+  local tasks = {}
   return {
     add = function(task)
-      table.insert(queue, task)
+      table.insert(tasks, task)
       if not scheduling then
+        scheduling = true
         vim.api.nvim_create_autocmd('SafeState', {
           once = true,
           callback = function()
-            local target = queue[#queue]
-            queue = {}
+            local target = tasks[#tasks]
+            tasks = {}
             scheduling = false
             if target then
               target()
