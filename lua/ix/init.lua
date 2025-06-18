@@ -574,9 +574,16 @@ function ix.do_action(runner)
         ix.get_completion_service():scroll_docs(delta)
       end,
       commit = function(index, option)
-        local match = ix.get_completion_service():get_matches()[index]
+        local completion_service = ix.get_completion_service()
+
+        -- nvim-ix uses async queue to handle TextChanged/CursorMoved event.
+        -- So if the user tries to commit a completion item, the completion menu does not updated yet.
+        -- To avoid this, nvim-ix needs to immediately update the completion menu.
+        completion_service:matching()
+
+        local match = completion_service:get_matches()[index]
         if match then
-          ix.get_completion_service():commit(match.item, option):await()
+          completion_service:commit(match.item, option):await()
           return true
         end
         return false
