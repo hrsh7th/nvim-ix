@@ -13,7 +13,10 @@ function source.completion.buffer(option)
     get_bufnrs = function()
       local bufs = {}
       for _, win in ipairs(vim.api.nvim_list_wins()) do
-        table.insert(bufs, vim.api.nvim_win_get_buf(win))
+        local buf = vim.api.nvim_win_get_buf(win)
+        if vim.api.nvim_get_option_value('buftype', { buf = buf }) ~= 'nofile' then
+          table.insert(bufs, buf)
+        end
       end
       return bufs
     end,

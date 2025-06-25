@@ -47,13 +47,18 @@ processing, achieving both stability and advanced features.
 
 ## Installation
 
-**Prerequisites**
+**Dependencies**
 
 - Neovim 0.11 or later.
   - `nvim-ix` uses `vim.on_key` with empty return string. It's introduced in
     Neovim 0.11.
 - NerdFonts
   - `nvim-ix`'s default view uses NerdFonts.
+
+**Dependencies (Optional)**
+
+- icon provider
+  - `mini.icons` or `lspkind.nvim`
 
 **Lazy.nvim example**
 

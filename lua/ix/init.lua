@@ -83,8 +83,13 @@ local default_config = {
         CompletionItemKindLookup[v] = k
       end
 
+      local lspkind = { pcall(require, 'lspkind') }
       local mini_icons = { pcall(require, 'mini.icons') }
       local function update()
+        if lspkind[1] then
+          return
+        end
+        lspkind = { pcall(require, 'lspkind') }
         if mini_icons[1] then
           return
         end
@@ -95,15 +100,21 @@ local default_config = {
       })
 
       -- mini.icons
-      ---@param completion_item_kind cmp-kit.kit.LSP.CompletionItemKind
+      ---@param kind cmp-kit.kit.LSP.CompletionItemKind
       ---@return { [1]: string, [2]?: string }?
-      return function(completion_item_kind)
-        if mini_icons[1] then
-          if not cache[completion_item_kind] then
-            local kind = CompletionItemKindLookup[completion_item_kind] or 'text'
-            cache[completion_item_kind] = { mini_icons[2].get('lsp', kind:lower()) }
+      return function(kind)
+        kind = kind or LSP.CompletionItemKind.Text
+        if lspkind[1] then
+          if not cache[kind] then
+            cache[kind] = { lspkind[2].symbolic(CompletionItemKindLookup[kind]), ('CmpItemKind' .. CompletionItemKindLookup[kind]) }
           end
-          return cache[completion_item_kind]
+          return cache[kind]
+        end
+        if mini_icons[1] then
+          if not cache[kind] then
+            cache[kind] = { mini_icons[2].get('lsp', CompletionItemKindLookup[kind]:lower()) }
+          end
+          return cache[kind]
         end
         return { '', '' }
       end
