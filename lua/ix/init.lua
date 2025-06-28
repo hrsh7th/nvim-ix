@@ -300,7 +300,9 @@ function ix.setup(config)
           if not vim.tbl_contains({ 'i', 's' }, mode) then
             signature_help_service:clear()
           elseif vim.tbl_contains({ 's' }, mode) then
-            signature_help_service:trigger({ force = true })
+            if private.config.signature_help.auto or signature_help_service:is_visible() then
+              signature_help_service:trigger({ force = true })
+            end
           end
         end)
       end
