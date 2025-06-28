@@ -3,8 +3,6 @@ local kit = require('cmp-kit.kit')
 local LSP = require('cmp-kit.kit.LSP')
 local Async = require('cmp-kit.kit.Async')
 local Keymap = require('cmp-kit.kit.Vim.Keymap')
-local CompletionService = require('cmp-kit.completion.CompletionService')
-local SignatureHelpService = require('cmp-kit.signature_help.SignatureHelpService')
 
 ---@alias ix.Charmap.Callback fun(fallback: fun())
 
@@ -404,6 +402,7 @@ function ix.get_completion_service(option)
       if private.completion.c[key] then
         private.completion.c[key]:dispose()
       end
+      local CompletionService = require('cmp-kit.completion.CompletionService')
       private.completion.c[key] = CompletionService.new({
         is_macro_executing = private.config.is_macro_executing,
         is_macro_recording = private.config.is_macro_recording,
@@ -424,6 +423,7 @@ function ix.get_completion_service(option)
     if private.completion.i[key] then
       private.completion.i[key]:dispose()
     end
+    local CompletionService = require('cmp-kit.completion.CompletionService')
     private.completion.i[key] = CompletionService.new({
       is_macro_executing = private.config.is_macro_executing,
       is_macro_recording = private.config.is_macro_recording,
@@ -453,6 +453,7 @@ function ix.get_signature_help_service(option)
       if private.signature_help.c[key] then
         private.signature_help.c[key]:dispose()
       end
+      local SignatureHelpService = require('cmp-kit.signature_help.SignatureHelpService')
       private.signature_help.c[key] = SignatureHelpService.new({
         view = require('cmp-kit.signature_help.ext.DefaultView').new(),
       })
@@ -466,6 +467,7 @@ function ix.get_signature_help_service(option)
     if private.signature_help.i[key] then
       private.signature_help.i[key]:dispose()
     end
+    local SignatureHelpService = require('cmp-kit.signature_help.SignatureHelpService')
     private.signature_help.i[key] = SignatureHelpService.new({
       view = require('cmp-kit.signature_help.ext.DefaultView').new(),
     })
