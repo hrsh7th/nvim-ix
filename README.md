@@ -10,6 +10,10 @@ insert mode enhancement plugin for Neovim
 _The API is not yet stable. If you have made any advanced customizations, they
 may stop working without notice._
 
+## Demo
+
+https://github.com/user-attachments/assets/bb41d8f7-7572-4a8b-a831-4884a52f35b4
+
 ## Overview
 
 `nvim-ix` is a plugin for Neovim that provides insert-mode enhancement
