@@ -103,21 +103,28 @@ ix.setup({
 
 -- Setup keymaps (Using `ix.charmap`; See below).
 do
-  vim.keymap.set({ 'i', 'c' }, '<C-d>', ix.action.scroll(0 + 3))
-  vim.keymap.set({ 'i', 'c' }, '<C-u>', ix.action.scroll(0 - 3))
+  -- common.
+  ix.charmap.set({ 'i', 'c' }, '<C-d>', ix.action.scroll(0 + 3))
+  ix.charmap.set({ 'i', 'c' }, '<C-u>', ix.action.scroll(0 - 3))
 
-  vim.keymap.set({ 'i', 'c' }, '<C-Space>', ix.action.completion.complete())
-  vim.keymap.set({ 'i', 'c' }, '<C-n>', ix.action.completion.select_next())
-  vim.keymap.set({ 'i', 'c' }, '<C-p>', ix.action.completion.select_prev())
-  vim.keymap.set({ 'i', 'c' }, '<C-e>', ix.action.completion.close())
-  ix.charmap.set('c', '<CR>', ix.action.completion.commit_cmdline())
-  ix.charmap.set('i', '<CR>', ix.action.completion.commit({ select_first = true }))
-  vim.keymap.set('i', '<Down>', ix.action.completion.select_next())
-  vim.keymap.set('i', '<Up>', ix.action.completion.select_prev())
-  vim.keymap.set('i', '<C-y>', ix.action.completion.commit({ select_first = true, replace = true, no_snippet = true }))
+  -- completion.
+  ix.charmap.set({ 'i', 'c' }, '<C-n>', ix.action.completion.select_next())
+  ix.charmap.set({ 'i', 'c' }, '<C-p>', ix.action.completion.select_prev())
+  ix.charmap.set({ 'i', 'c' }, '<C-Space>', ix.action.completion.complete())
+  ix.charmap.set({ 'i', 'c' }, '<C-e>', ix.action.completion.close())
+  ix.charmap.set({ 'c' }, '<CR>', ix.action.completion.commit_cmdline())
+  ix.charmap.set({ 'i' }, '<CR>', ix.action.completion.commit({ select_first = true }))
+  ix.charmap.set({ 'i' }, '<Down>', ix.action.completion.select_next({ no_insert = true }))
+  ix.charmap.set({ 'i' }, '<Up>', ix.action.completion.select_prev({ no_insert = true }))
+  ix.charmap.set({ 'i' }, '<C-y>', ix.action.completion.commit({
+    select_first = true,
+    replace = true,
+    no_snippet = true
+  }))
 
-  vim.keymap.set({ 'i', 's' }, '<C-o>', ix.action.signature_help.trigger_or_close())
-  vim.keymap.set({ 'i', 's' }, '<C-j>', ix.action.signature_help.select_next())
+  -- signature_help.
+  ix.charmap.set({ 'i', 's' }, '<C-o>', ix.action.signature_help.trigger_or_close())
+  ix.charmap.set({ 'i', 's' }, '<C-j>', ix.action.signature_help.select_next())
 end
 ```
 

@@ -63,6 +63,10 @@ local default_config = {
     ---@type boolean
     auto = true,
 
+    ---Enable/disable auto documentation.
+    ---@type boolean
+    auto_docs = true,
+
     ---Enable/disable LSP's preselect feature.
     ---@type boolean
     preselect = false,
@@ -166,6 +170,7 @@ local default_config = {
 
 ---@class ix.SetupOption.Completion
 ---@field public auto? boolean
+---@field public auto_docs? boolean
 ---@field public default_keyword_pattern? string
 ---@field public preselect? boolean
 ---@field public icon_resolver? fun(kind: cmp-kit.kit.LSP.CompletionItemKind): { [1]: string, [2]?: string }?
@@ -255,7 +260,7 @@ function ix.setup(config)
       end
 
       charmap.callback(function()
-        local task = Keymap.send({ keys = charmap.char, remap = true })
+        local task = Keymap.send({ keys = typed, remap = true })
         if Async.in_context() then
           task:await()
         end
@@ -411,6 +416,7 @@ function ix.get_completion_service(option)
         default_keyword_pattern = private.config.completion.default_keyword_pattern,
         preselect = private.config.completion.preselect,
         view = require('cmp-kit.completion.ext.DefaultView').new({
+          auto_docs = private.config.completion.auto_docs,
           icon_resolver = private.config.completion.icon_resolver,
           use_source_name_column = true,
         })
@@ -433,6 +439,7 @@ function ix.get_completion_service(option)
       default_keyword_pattern = private.config.completion.default_keyword_pattern,
       preselect = private.config.completion.preselect,
       view = require('cmp-kit.completion.ext.DefaultView').new({
+        auto_docs = private.config.completion.auto_docs,
         icon_resolver = private.config.completion.icon_resolver,
         use_source_name_column = true,
       })
@@ -532,7 +539,9 @@ end
 ---Run ix action in async-context.
 ---@class ix.API.Completion
 ---@field prevent fun(callback: fun())
----@field close fun()
+---@field hide fun()
+---@field show_docs fun()
+---@field hide_docs fun()
 ---@field is_menu_visible fun(): boolean
 ---@field is_docs_visible fun(): boolean
 ---@field get_selection fun(): cmp-kit.completion.Selection|nil
@@ -567,8 +576,14 @@ function ix.do_action(runner)
         callback()
         resume()
       end,
-      close = function()
+      hide = function()
         ix.get_completion_service():clear()
+      end,
+      show_docs = function()
+        ix.get_completion_service():show_docs()
+      end,
+      hide_docs = function()
+        ix.get_completion_service():hide_docs()
       end,
       is_menu_visible = function()
         return ix.get_completion_service():is_menu_visible()

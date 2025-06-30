@@ -1,5 +1,20 @@
 local action = {}
 
+---Create fallback action.
+---@param params { fallback: string|fun(), action: ix.Charmap.Callback }
+---@return ix.Charmap.Callback
+function action.with_fallback(params)
+  return function()
+    return params.action(function()
+      if type(params.fallback) == 'string' then
+        vim.api.nvim_feedkeys(vim.keycode(params.fallback --[[@as string]]), 'n', true)
+      else
+        params.fallback()
+      end
+    end)
+  end
+end
+
 --- common.
 do
   ---Scroll completion docs or signature help.
@@ -114,7 +129,7 @@ do
     ---@type ix.Charmap.Callback
     return function()
       require('ix').do_action(function(ctx)
-        ctx.completion.close()
+        ctx.completion.hide()
         vim.api.nvim_feedkeys(vim.keycode('<CR>'), 'n', true) -- don't use `ctx.fallback` here it sends extra `<Cmd>...<CR>` keys, that prevent Hit-Enter prompt unexpectedly.
       end)
     end
@@ -127,7 +142,25 @@ do
       fallback = fallback or function() end
       require('ix').do_action(function(ctx)
         if ctx.completion.is_menu_visible() then
-          ctx.completion.close()
+          ctx.completion.hide()
+        else
+          fallback()
+        end
+      end)
+    end
+  end
+
+  ---Show/hide documentation.
+  function action.completion.toggle_docs()
+    return function(fallback)
+      fallback = fallback or function() end
+      require('ix').do_action(function(ctx)
+        if ctx.completion.is_menu_visible() then
+          if ctx.completion.is_docs_visible() then
+            ctx.completion.hide_docs()
+          else
+            ctx.completion.show_docs()
+          end
         else
           fallback()
         end
