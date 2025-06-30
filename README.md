@@ -85,11 +85,6 @@ vim.o.winborder = 'rounded' -- (Optional) nvim-ix follows global `winborder` set
 
 local ix = require('ix')
 
--- Update LSP capabilities
-vim.lsp.config('*', {
-  capabilities = ix.get_capabilities()
-})
-
 -- Setup nvim-ix
 ix.setup({
   -- Register snippet expand function (optional if not using snippets)
@@ -127,16 +122,6 @@ do
   ix.charmap.set({ 'i', 's' }, '<C-j>', ix.action.signature_help.select_next())
 end
 ```
-
-**Regarding LSP Capabilities Update**:
-
-`ix.get_capabilities()` is returning LSP Capabilities that `nvim-ix` supports.
-
-The LSP specification defines the concept of `capabilities`, which an `editor`
-can use to inform the server that it supports the features defined in the LSP.
-
-`nvim-ix` supports a variety of features related to completion and signature
-help, so please inform the LSP server.
 
 **Snippet Engine Integration**:
 
