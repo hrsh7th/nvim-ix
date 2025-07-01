@@ -1,0 +1,58 @@
+name: ci
+
+on:
+  pull_request: ~
+  push:
+    branches: 
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        nvim: 
+          - nightly
+          - stable
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: rhysd/action-setup-vim@v1
+        with:
+          neovim: true
+          version: ${{ matrix.nvim }}
+      - uses: leafo/gh-actions-lua@v8
+        with:
+          luaVersion: "5.1"
+      - uses: leafo/gh-actions-luarocks@v4
+
+      - name: Luacheck
+        uses: judaew/luacheck-action@v0.2.2
+        with:
+          targets: lua
+
+
+  auto-format:
+    needs: check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+      - uses: JohnnyMorganz/stylua-action@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          version: latest
+          args: "plugin lua"
+      - uses: stefanzweifel/git-auto-commit-action@v6
+        with:
+          commit_message: "style: run stylua"
+          file_pattern: |
+            lua/**/*.lua
+
