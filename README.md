@@ -99,8 +99,8 @@ ix.setup({
 -- Setup keymaps (Using `ix.charmap`; See below).
 do
   -- common.
-  ix.charmap.set({ 'i', 'c' }, '<C-d>', ix.action.scroll(0 + 3))
-  ix.charmap.set({ 'i', 'c' }, '<C-u>', ix.action.scroll(0 - 3))
+ix.charmap.set({ 'i', 'c', 's' }, '<C-d>', ix.action.scroll(0 + 3))
+ix.charmap.set({ 'i', 'c', 's' }, '<C-u>', ix.action.scroll(0 - 3))
 
   -- completion.
   ix.charmap.set({ 'i', 'c' }, '<C-n>', ix.action.completion.select_next())
@@ -167,6 +167,10 @@ ix.setup({
     ---@type boolean
     auto = true,
 
+    ---Enable/disable auto documentation.
+    ---@type boolean
+    auto_docs = true,
+
     ---Enable/disable LSP's preselect feature.
     ---@type boolean
     preselect = false,
@@ -185,8 +189,13 @@ ix.setup({
         CompletionItemKindLookup[v] = k
       end
 
+      local lspkind = { pcall(require, 'lspkind') }
       local mini_icons = { pcall(require, 'mini.icons') }
       local function update()
+        if lspkind[1] then
+          return
+        end
+        lspkind = { pcall(require, 'lspkind') }
         if mini_icons[1] then
           return
         end
@@ -197,15 +206,21 @@ ix.setup({
       })
 
       -- mini.icons
-      ---@param completion_item_kind cmp-kit.kit.LSP.CompletionItemKind
+      ---@param kind cmp-kit.kit.LSP.CompletionItemKind
       ---@return { [1]: string, [2]?: string }?
-      return function(completion_item_kind)
-        if mini_icons[1] then
-          if not cache[completion_item_kind] then
-            local kind = CompletionItemKindLookup[completion_item_kind] or 'text'
-            cache[completion_item_kind] = { mini_icons[2].get('lsp', kind:lower()) }
+      return function(kind)
+        kind = kind or LSP.CompletionItemKind.Text
+        if lspkind[1] then
+          if not cache[kind] then
+            cache[kind] = { lspkind[2].symbolic(CompletionItemKindLookup[kind]), ('CmpItemKind' .. CompletionItemKindLookup[kind]) }
           end
-          return cache[completion_item_kind]
+          return cache[kind]
+        end
+        if mini_icons[1] then
+          if not cache[kind] then
+            cache[kind] = { mini_icons[2].get('lsp', CompletionItemKindLookup[kind]:lower()) }
+          end
+          return cache[kind]
         end
         return { '', '' }
       end
@@ -218,7 +233,6 @@ ix.setup({
     ---Auto trigger signature help.
     ---@type boolean
     auto = true,
-
   },
 
   ---Attach services for each per modes.
@@ -254,7 +268,7 @@ ix.setup({
         service:register_source(ix.source.completion.cmdline(), { group = 10 })
       end
     end,
-  }
+  },
 })
 ```
 
