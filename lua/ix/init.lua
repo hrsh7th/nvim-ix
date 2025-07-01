@@ -674,6 +674,7 @@ end
 
 ---Get ix supported capabilities.
 function ix.get_capabilities()
+  vim.deprecate('ix.get_capabilities', 'nvim-ix automatic resolve lsp capabilities now', '0.0.0', 'nvim-ix')
   return {
     textDocument = {
       completion = {
