@@ -99,8 +99,8 @@ ix.setup({
 -- Setup keymaps (Using `ix.charmap`; See below).
 do
   -- common.
-ix.charmap.set({ 'i', 'c', 's' }, '<C-d>', ix.action.scroll(0 + 3))
-ix.charmap.set({ 'i', 'c', 's' }, '<C-u>', ix.action.scroll(0 - 3))
+  ix.charmap.set({ 'i', 'c', 's' }, '<C-d>', ix.action.scroll(0 + 3))
+  ix.charmap.set({ 'i', 'c', 's' }, '<C-u>', ix.action.scroll(0 - 3))
 
   -- completion.
   ix.charmap.set({ 'i', 'c' }, '<C-n>', ix.action.completion.select_next())
