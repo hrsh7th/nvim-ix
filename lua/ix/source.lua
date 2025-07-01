@@ -64,19 +64,14 @@ function source.completion.attach_lsp(completion_service, option)
       if attached[client.id] then
         attached[client.id]()
       end
-      attached[client.id] = completion_service:register_source(
-        require('cmp-kit.completion.ext.source.lsp.completion')(
-          kit.merge({ client = client }, option.server[client.name] or {})
-        ),
-        {
-          group = option.group,
-          priority = option.priority
-        }
-      )
+      attached[client.id] = completion_service:register_source(require('cmp-kit.completion.ext.source.lsp.completion')(kit.merge({ client = client }, option.server[client.name] or {})), {
+        group = option.group,
+        priority = option.priority,
+      })
     end
   end
   completion_service:on_dispose(misc.autocmd('LspAttach', {
-    callback = attach
+    callback = attach,
   }))
   attach()
 
@@ -87,7 +82,7 @@ function source.completion.attach_lsp(completion_service, option)
         attached[e.data.client_id]()
         attached[e.data.client_id] = nil
       end
-    end
+    end,
   }))
 end
 
@@ -112,17 +107,14 @@ function source.signature_help.attach_lsp(signature_help_service, option)
         attached[client.id]()
         attached[client.id] = nil
       end
-      attached[client.id] = signature_help_service:register_source(
-        require('cmp-kit.signature_help.ext.source.lsp.signature_help')({ client = client }),
-        {
-          group = option.group,
-          priority = option.priority
-        }
-      )
+      attached[client.id] = signature_help_service:register_source(require('cmp-kit.signature_help.ext.source.lsp.signature_help')({ client = client }), {
+        group = option.group,
+        priority = option.priority,
+      })
     end
   end
   signature_help_service:on_dispose(misc.autocmd('LspAttach', {
-    callback = attach
+    callback = attach,
   }))
   attach()
 
@@ -133,7 +125,7 @@ function source.signature_help.attach_lsp(signature_help_service, option)
         attached[e.data.client_id]()
         attached[e.data.client_id] = nil
       end
-    end
+    end,
   }))
 end
 

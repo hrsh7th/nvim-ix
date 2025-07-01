@@ -36,7 +36,7 @@ local private = {
   setup = {
     config = {},
     dispose = {},
-  }
+  },
 }
 
 local default_config = {
@@ -129,7 +129,6 @@ local default_config = {
     ---Auto trigger signature help.
     ---@type boolean
     auto = true,
-
   },
 
   ---Attach services for each per modes.
@@ -165,7 +164,7 @@ local default_config = {
         service:register_source(ix.source.completion.cmdline(), { group = 10 })
       end
     end,
-  }
+  },
 } --[[@as ix.SetupOption]]
 
 ---@class ix.SetupOption.Completion
@@ -273,94 +272,109 @@ function ix.setup(config)
   ---Setup insert-mode trigger.
   do
     local queue = misc.autocmd_queue()
-    table.insert(private.setup.dispose, misc.autocmd({ 'TextChangedI', 'CursorMovedI' }, {
-      callback = function()
-        local completion_service = ix.get_completion_service()
-        local signature_help_service = ix.get_signature_help_service()
-        queue.add(function()
-          local mode = vim.api.nvim_get_mode().mode
-          if vim.tbl_contains({ 'i' }, mode) then
-            if private.config.completion.auto or completion_service:is_menu_visible() then
-              completion_service:complete({ force = false })
+    table.insert(
+      private.setup.dispose,
+      misc.autocmd({ 'TextChangedI', 'CursorMovedI' }, {
+        callback = function()
+          local completion_service = ix.get_completion_service()
+          local signature_help_service = ix.get_signature_help_service()
+          queue.add(function()
+            local mode = vim.api.nvim_get_mode().mode
+            if vim.tbl_contains({ 'i' }, mode) then
+              if private.config.completion.auto or completion_service:is_menu_visible() then
+                completion_service:complete({ force = false })
+              end
             end
-          end
-          if vim.tbl_contains({ 'i', 's' }, mode) then
-            if private.config.signature_help.auto or signature_help_service:is_visible() then
-              signature_help_service:trigger({ force = false })
+            if vim.tbl_contains({ 'i', 's' }, mode) then
+              if private.config.signature_help.auto or signature_help_service:is_visible() then
+                signature_help_service:trigger({ force = false })
+              end
             end
-          end
-        end)
-      end
-    }))
-    table.insert(private.setup.dispose, misc.autocmd('ModeChanged', {
-      pattern = { 'i:*', 's:*' },
-      callback = function()
-        local completion_service = ix.get_completion_service()
-        local signature_help_service = ix.get_signature_help_service()
-        queue.add(function()
-          local mode = vim.api.nvim_get_mode().mode
-          if not vim.tbl_contains({ 'i' }, mode) then
-            completion_service:clear()
-          end
-          if not vim.tbl_contains({ 'i', 's' }, mode) then
-            signature_help_service:clear()
-          elseif vim.tbl_contains({ 's' }, mode) then
-            if private.config.signature_help.auto or signature_help_service:is_visible() then
-              signature_help_service:trigger({ force = true })
+          end)
+        end,
+      })
+    )
+    table.insert(
+      private.setup.dispose,
+      misc.autocmd('ModeChanged', {
+        pattern = { 'i:*', 's:*' },
+        callback = function()
+          local completion_service = ix.get_completion_service()
+          local signature_help_service = ix.get_signature_help_service()
+          queue.add(function()
+            local mode = vim.api.nvim_get_mode().mode
+            if not vim.tbl_contains({ 'i' }, mode) then
+              completion_service:clear()
             end
-          end
-        end)
-      end
-    }))
+            if not vim.tbl_contains({ 'i', 's' }, mode) then
+              signature_help_service:clear()
+            elseif vim.tbl_contains({ 's' }, mode) then
+              if private.config.signature_help.auto or signature_help_service:is_visible() then
+                signature_help_service:trigger({ force = true })
+              end
+            end
+          end)
+        end,
+      })
+    )
   end
 
   ---Setup cmdline-mode trigger.
   do
     local queue = misc.autocmd_queue()
-    table.insert(private.setup.dispose, misc.autocmd('CmdlineChanged', {
-      callback = function()
-        local completion_service = ix.get_completion_service()
-        local signature_help_service = ix.get_signature_help_service()
-        queue.add(function()
-          local mode = vim.api.nvim_get_mode().mode
-          if mode == 'c' then
-            if private.config.completion.auto or completion_service:is_menu_visible() then
-              completion_service:complete({ force = false })
+    table.insert(
+      private.setup.dispose,
+      misc.autocmd('CmdlineChanged', {
+        callback = function()
+          local completion_service = ix.get_completion_service()
+          local signature_help_service = ix.get_signature_help_service()
+          queue.add(function()
+            local mode = vim.api.nvim_get_mode().mode
+            if mode == 'c' then
+              if private.config.completion.auto or completion_service:is_menu_visible() then
+                completion_service:complete({ force = false })
+              end
+              if private.config.signature_help.auto or signature_help_service:is_visible() then
+                signature_help_service:trigger({ force = false })
+              end
             end
-            if private.config.signature_help.auto or signature_help_service:is_visible() then
-              signature_help_service:trigger({ force = false })
+          end)
+        end,
+      })
+    )
+    table.insert(
+      private.setup.dispose,
+      misc.autocmd('CmdlineLeave', {
+        callback = function()
+          local completion_service = ix.get_completion_service()
+          local signature_help_service = ix.get_signature_help_service()
+          queue.add(function()
+            local mode = vim.api.nvim_get_mode().mode
+            if mode ~= 'c' then
+              completion_service:clear()
+              signature_help_service:clear()
             end
-          end
-        end)
-      end
-    }))
-    table.insert(private.setup.dispose, misc.autocmd('CmdlineLeave', {
-      callback = function()
-        local completion_service = ix.get_completion_service()
-        local signature_help_service = ix.get_signature_help_service()
-        queue.add(function()
-          local mode = vim.api.nvim_get_mode().mode
-          if mode ~= 'c' then
-            completion_service:clear()
-            signature_help_service:clear()
-          end
-        end)
-      end
-    }))
+          end)
+        end,
+      })
+    )
   end
 
   ---Setup inesrt-mode service initialization.
   do
     local queue = misc.autocmd_queue()
-    table.insert(private.setup.dispose, misc.autocmd('BufEnter', {
-      callback = function()
-        queue.add(function()
-          if private.config.attach.insert_mode then
-            private.config.attach.insert_mode()
-          end
-        end)
-      end
-    }))
+    table.insert(
+      private.setup.dispose,
+      misc.autocmd('BufEnter', {
+        callback = function()
+          queue.add(function()
+            if private.config.attach.insert_mode then
+              private.config.attach.insert_mode()
+            end
+          end)
+        end,
+      })
+    )
     if private.config.attach.insert_mode then
       private.config.attach.insert_mode()
     end
@@ -369,18 +383,21 @@ function ix.setup(config)
   ---Setup cmdline-mode service initialization.
   do
     local queue = misc.autocmd_queue()
-    table.insert(private.setup.dispose, misc.autocmd('CmdlineEnter', {
-      callback = function()
-        queue.add(function()
-          local mode = vim.api.nvim_get_mode().mode
-          if mode == 'c' then
-            if private.config.attach.cmdline_mode then
-              private.config.attach.cmdline_mode()
+    table.insert(
+      private.setup.dispose,
+      misc.autocmd('CmdlineEnter', {
+        callback = function()
+          queue.add(function()
+            local mode = vim.api.nvim_get_mode().mode
+            if mode == 'c' then
+              if private.config.attach.cmdline_mode then
+                private.config.attach.cmdline_mode()
+              end
             end
-          end
-        end)
-      end
-    }))
+          end)
+        end,
+      })
+    )
     if vim.api.nvim_get_mode().mode == 'c' then
       if private.config.attach.cmdline_mode then
         private.config.attach.cmdline_mode()
@@ -419,7 +436,7 @@ function ix.get_completion_service(option)
           auto_docs = private.config.completion.auto_docs,
           icon_resolver = private.config.completion.icon_resolver,
           use_source_name_column = true,
-        })
+        }),
       })
     end
     return private.completion.c[key]
@@ -442,7 +459,7 @@ function ix.get_completion_service(option)
         auto_docs = private.config.completion.auto_docs,
         icon_resolver = private.config.completion.icon_resolver,
         use_source_name_column = true,
-      })
+      }),
     })
   end
   return private.completion.i[key]
@@ -563,7 +580,6 @@ end
 ---@field schedule fun()
 ---@field feedkeys fun(keys: string, remap?: boolean)
 
-
 ---Run ix action with given runner.
 ---@param runner fun(ctx: ix.API)
 ---@return cmp-kit.kit.Async.AsyncTask
@@ -670,23 +686,23 @@ function ix.get_capabilities()
           tagSupport = {
             valueSet = {
               1, -- Deprecated
-            }
+            },
           },
           insertReplaceSupport = true,
           resolveSupport = {
             properties = {
-              "documentation",
-              "additionalTextEdits",
-              "insertTextFormat",
-              "insertTextMode",
-              "command",
+              'documentation',
+              'additionalTextEdits',
+              'insertTextFormat',
+              'insertTextMode',
+              'command',
             },
           },
           insertTextModeSupport = {
             valueSet = {
               1, -- asIs
               2, -- adjustIndentation
-            }
+            },
           },
           labelDetailsSupport = true,
         },
@@ -699,8 +715,8 @@ function ix.get_capabilities()
             'insertTextFormat',
             'insertTextMode',
             'data',
-          }
-        }
+          },
+        },
       },
       signatureHelp = {
         dynamicRegistration = true,
@@ -712,7 +728,7 @@ function ix.get_capabilities()
           activeParameterSupport = true,
         },
         contextSupport = true,
-      }
+      },
     },
   } --[[@as cmp-kit.kit.LSP.ClientCapabilities]]
 end
