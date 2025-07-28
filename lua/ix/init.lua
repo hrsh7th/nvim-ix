@@ -143,6 +143,7 @@ local default_config = {
       do
         local service = ix.get_completion_service({ recreate = true })
         service:register_source(ix.source.completion.calc(), { group = 1 })
+        service:register_source(ix.source.completion.emoji(), { group = 1 })
         service:register_source(ix.source.completion.path(), { group = 10 })
         ix.source.completion.attach_lsp(service, { group = 20 })
         service:register_source(ix.source.completion.buffer(), { group = 20, dedup = true })

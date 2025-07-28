@@ -24,6 +24,12 @@ function source.completion.buffer(option)
   } --[[@as cmp-kit.completion.ext.source.buffer.Option]]))
 end
 
+---Create emoji source.
+---@return cmp-kit.completion.CompletionSource
+function source.completion.emoji()
+  return require('cmp-kit.completion.ext.source.emoji')()
+end
+
 ---Create path source.
 ---@param option? cmp-kit.completion.ext.source.path.Option
 ---@return cmp-kit.completion.CompletionSource
