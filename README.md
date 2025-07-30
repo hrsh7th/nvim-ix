@@ -35,6 +35,7 @@ processing, achieving both stability and advanced features.
   information, etc.).
 - **Built-in Common Sources**:
   - **Completion**
+    - `github`: GitHub-related completions (`gh` command is required).
     - `buffer`: Words from the current buffer.
     - `path`: File and directory paths.
     - `calc`: Evaluation of simple mathematical expressions.

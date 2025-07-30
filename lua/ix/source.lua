@@ -5,6 +5,12 @@ local source = {}
 
 source.completion = {}
 
+---Create github source.
+---@return cmp-kit.completion.CompletionSource
+function source.completion.github()
+  return require('cmp-kit.completion.ext.source.github')()
+end
+
 ---Create buffer source.
 ---@param option? cmp-kit.completion.ext.source.buffer.Option
 ---@return cmp-kit.completion.CompletionSource

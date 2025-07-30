@@ -142,6 +142,7 @@ local default_config = {
       end
       do
         local service = ix.get_completion_service({ recreate = true })
+        service:register_source(ix.source.completion.github(), { group = 1 })
         service:register_source(ix.source.completion.calc(), { group = 1 })
         service:register_source(ix.source.completion.emoji(), { group = 1 })
         service:register_source(ix.source.completion.path(), { group = 10 })
