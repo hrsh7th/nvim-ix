@@ -67,6 +67,10 @@ local default_config = {
     ---@type boolean
     auto_docs = true,
 
+    ---Enable/disable auto select first item in completion menu.
+    ---@type boolean
+    auto_select_first = false,
+
     ---Enable/disable LSP's preselect feature.
     ---@type boolean
     preselect = false,
@@ -172,8 +176,9 @@ local default_config = {
 ---@class ix.SetupOption.Completion
 ---@field public auto? boolean
 ---@field public auto_docs? boolean
----@field public default_keyword_pattern? string
+---@field public auto_select_first? boolean
 ---@field public preselect? boolean
+---@field public default_keyword_pattern? string
 ---@field public icon_resolver? fun(kind: cmp-kit.kit.LSP.CompletionItemKind): { [1]: string, [2]?: string }?
 
 ---@class ix.SetupOption.SignatureHelp
@@ -440,6 +445,12 @@ function ix.get_completion_service(option)
           use_source_name_column = true,
         }),
       })
+      if private.config.completion.auto_select_first then
+        local service = private.completion.c[key]
+        service:on_menu_update(function()
+          service:select(1, true)
+        end)
+      end
     end
     return private.completion.c[key]
   end
@@ -463,6 +474,12 @@ function ix.get_completion_service(option)
         use_source_name_column = true,
       }),
     })
+    if private.config.completion.auto_select_first then
+      local service = private.completion.i[key]
+      service:on_menu_update(function()
+        service:select(1, true)
+      end)
+    end
   end
   return private.completion.i[key]
 end

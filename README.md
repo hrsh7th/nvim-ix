@@ -173,6 +173,10 @@ ix.setup({
     ---@type boolean
     auto_docs = true,
 
+    ---Enable/disable auto select first item in completion menu.
+    ---@type boolean
+    auto_select_first = false,
+
     ---Enable/disable LSP's preselect feature.
     ---@type boolean
     preselect = false,
@@ -248,10 +252,12 @@ ix.setup({
       end
       do
         local service = ix.get_completion_service({ recreate = true })
+        service:register_source(ix.source.completion.github(), { group = 1 })
         service:register_source(ix.source.completion.calc(), { group = 1 })
+        service:register_source(ix.source.completion.emoji(), { group = 1 })
         service:register_source(ix.source.completion.path(), { group = 10 })
         ix.source.completion.attach_lsp(service, { group = 20 })
-        service:register_source(ix.source.completion.buffer(), { group = 20, dedup = true })
+        service:register_source(ix.source.completion.buffer(), { group = 30, dedup = true })
       end
       do
         local service = ix.get_signature_help_service({ recreate = true })
