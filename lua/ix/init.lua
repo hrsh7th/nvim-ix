@@ -39,7 +39,7 @@ local private = {
   },
 }
 
- ---@type ix.SetupOption
+---@type ix.SetupOption
 local default_config = {
   ---Expand snippet function.
   ---@type nil|cmp-kit.completion.ExpandSnippet
