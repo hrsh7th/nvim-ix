@@ -125,6 +125,14 @@ local default_config = {
         return { '', '' }
       end
     end)(),
+
+    ---LSP related configuration.
+    ---@type { servers?: table<string, ix.source.completion.attach_lsp.ServerConfiguration> }
+    lsp = {
+      ---Configuration for lsp servers.
+      ---@type table<string, ix.source.completion.attach_lsp.ServerConfiguration>
+      servers = {}
+    }
   },
 
   ---Signature help configuration.
@@ -150,7 +158,13 @@ local default_config = {
         service:register_source(ix.source.completion.calc(), { group = 1 })
         service:register_source(ix.source.completion.emoji(), { group = 1 })
         service:register_source(ix.source.completion.path(), { group = 10 })
-        ix.source.completion.attach_lsp(service, { group = 20 })
+        ix.source.completion.attach_lsp(service, {
+          default = {
+            group = 20,
+            priority = 1,
+          },
+          servers = private.config.completion.lsp.servers,
+        })
         service:register_source(ix.source.completion.buffer(), { group = 30, dedup = true })
       end
       do
@@ -178,6 +192,7 @@ local default_config = {
 ---@field public auto_docs? boolean
 ---@field public auto_select_first? boolean
 ---@field public preselect? boolean
+---@field public lsp? { servers?: table<string, cmp-kit.completion.CompletionService.RegisterProviderParams|{ config?: cmp-kit.completion.ext.source.lsp.completion.Option }> }
 ---@field public default_keyword_pattern? string
 ---@field public icon_resolver? fun(kind: cmp-kit.kit.LSP.CompletionItemKind): { [1]: string, [2]?: string }?
 

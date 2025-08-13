@@ -58,15 +58,14 @@ function source.completion.cmdline()
 end
 
 ---Attach lsp completion source to the completion service.
+---@alias ix.source.completion.attach_lsp.ServerConfiguration (cmp-kit.completion.CompletionService.RegisterProviderParams|{ config?: cmp-kit.completion.ext.source.lsp.completion.Option })
 ---@param completion_service cmp-kit.completion.CompletionService
----@param option? { bufnr: integer?, group: integer?, priority: integer?, server?: table<string, cmp-kit.completion.ext.source.lsp.completion.Option> }
+---@param option? { bufnr: integer?, default: { group: integer, priority: integer }, servers?: table<string, ix.source.completion.attach_lsp.ServerConfiguration> }
 function source.completion.attach_lsp(completion_service, option)
   option = option or {}
   option.bufnr = option.bufnr or vim.api.nvim_get_current_buf()
   option.bufnr = option.bufnr ~= 0 and vim.api.nvim_get_current_buf() or option.bufnr
-  option.group = option.group or 10
-  option.priority = option.priority or 100
-  option.server = option.server or {}
+  option.servers = option.servers or {}
 
   local attached = {} --[[@type table<integer, fun()>]]
 
@@ -76,10 +75,20 @@ function source.completion.attach_lsp(completion_service, option)
       if attached[client.id] then
         attached[client.id]()
       end
-      attached[client.id] = completion_service:register_source(require('cmp-kit.completion.ext.source.lsp.completion')(kit.merge({ client = client }, option.server[client.name] or {})), {
-        group = option.group,
-        priority = option.priority,
-      })
+      local server_config = kit.merge(option.servers[client.name] or {}, option.default) --[[@as ix.source.completion.attach_lsp.ServerConfiguration]]
+      attached[client.id] = completion_service:register_source(
+        require('cmp-kit.completion.ext.source.lsp.completion')(
+          kit.merge(server_config.config, {
+            client = client,
+          }) --[[@as cmp-kit.completion.ext.source.lsp.completion.OptionWithClient]]
+        ), {
+          group = server_config.group,
+          priority = server_config.priority,
+          dedup = server_config.dedup,
+          item_count = server_config.item_count,
+          keyword_length = server_config.keyword_length,
+        }
+      )
     end
   end
   completion_service:on_dispose(misc.autocmd('LspAttach', {
@@ -119,10 +128,11 @@ function source.signature_help.attach_lsp(signature_help_service, option)
         attached[client.id]()
         attached[client.id] = nil
       end
-      attached[client.id] = signature_help_service:register_source(require('cmp-kit.signature_help.ext.source.lsp.signature_help')({ client = client }), {
-        group = option.group,
-        priority = option.priority,
-      })
+      attached[client.id] = signature_help_service:register_source(
+        require('cmp-kit.signature_help.ext.source.lsp.signature_help')({ client = client }), {
+          group = option.group,
+          priority = option.priority,
+        })
     end
   end
   signature_help_service:on_dispose(misc.autocmd('LspAttach', {
