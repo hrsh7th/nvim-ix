@@ -96,17 +96,6 @@ ix.setup({
     -- require('snippy').expand_snippet(snippet) -- for `nvim-snippy` users
     -- vim.fn["vsnip#anonymous"](snippet_body) -- for `vim-vsnip` users
   end,
-
-  completion = {
-    lsp = {
-      servers = {
-        -- This is example configuration for emmet_language_server.
-        emmet_language_server = {
-          priority = -1,
-        }
-      }
-    }
-  }
 })
 
 -- Setup keymaps (Using `ix.charmap`; See below).
