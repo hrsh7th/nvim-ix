@@ -242,6 +242,14 @@ ix.setup({
         return { '', '' }
       end
     end)(),
+
+    ---LSP related configuration.
+    ---@type { servers?: table<string, ix.source.completion.attach_lsp.ServerConfiguration> }
+    lsp = {
+      ---Configuration for lsp servers.
+      ---@type table<string, ix.source.completion.attach_lsp.ServerConfiguration>
+      servers = {}
+    }
   },
 
   ---Signature help configuration.
@@ -267,7 +275,13 @@ ix.setup({
         service:register_source(ix.source.completion.calc(), { group = 1 })
         service:register_source(ix.source.completion.emoji(), { group = 1 })
         service:register_source(ix.source.completion.path(), { group = 10 })
-        ix.source.completion.attach_lsp(service, { group = 20 })
+        ix.source.completion.attach_lsp(service, {
+          default = {
+            group = 20,
+            priority = 1,
+          },
+          servers = private.config.completion.lsp.servers,
+        })
         service:register_source(ix.source.completion.buffer(), { group = 30, dedup = true })
       end
       do
