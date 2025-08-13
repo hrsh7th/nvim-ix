@@ -131,8 +131,8 @@ local default_config = {
     lsp = {
       ---Configuration for lsp servers.
       ---@type table<string, ix.source.completion.attach_lsp.ServerConfiguration>
-      servers = {}
-    }
+      servers = {},
+    },
   },
 
   ---Signature help configuration.
