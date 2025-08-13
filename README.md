@@ -89,7 +89,7 @@ local ix = require('ix')
 
 -- Setup nvim-ix
 ix.setup({
-  -- Register snippet expand function (optional if not using snippets)
+  -- Register snippet expand function (optional but recommend to set this).
   expand_snippet = function(snippet_body)
     -- vim.snippet.expand(snippet) -- for `neovim built-in` users
     -- require('luasnip').lsp_expand(snippet) -- for `LuaSnip` users
