@@ -196,6 +196,13 @@ ix.setup({
     ---@type string
     default_keyword_pattern = require('cmp-kit.completion.ext.DefaultConfig').default_keyword_pattern,
 
+    ---Performance related configuration.
+    ---@type cmp-kit.completion.CompletionService.Config.Performance
+    performance = {
+      fetching_timeout_ms = 120,
+      menu_update_throttle_ms = 32,
+    },
+
     ---Resolve LSP's CompletionItemKind to icons.
     ---@type nil|fun(kind: cmp-kit.kit.LSP.CompletionItemKind): { [1]: string, [2]?: string }?
     icon_resolver = (function()
@@ -248,8 +255,8 @@ ix.setup({
     lsp = {
       ---Configuration for lsp servers.
       ---@type table<string, ix.source.completion.attach_lsp.ServerConfiguration>
-      servers = {}
-    }
+      servers = {},
+    },
   },
 
   ---Signature help configuration.

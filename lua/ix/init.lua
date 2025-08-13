@@ -39,6 +39,7 @@ local private = {
   },
 }
 
+ ---@type ix.SetupOption
 local default_config = {
   ---Expand snippet function.
   ---@type nil|cmp-kit.completion.ExpandSnippet
@@ -78,6 +79,13 @@ local default_config = {
     ---Default keyword pattern for completion.
     ---@type string
     default_keyword_pattern = require('cmp-kit.completion.ext.DefaultConfig').default_keyword_pattern,
+
+    ---Performance related configuration.
+    ---@type cmp-kit.completion.CompletionService.Config.Performance
+    performance = {
+      fetching_timeout_ms = 120,
+      menu_update_throttle_ms = 32,
+    },
 
     ---Resolve LSP's CompletionItemKind to icons.
     ---@type nil|fun(kind: cmp-kit.kit.LSP.CompletionItemKind): { [1]: string, [2]?: string }?
@@ -185,13 +193,14 @@ local default_config = {
       end
     end,
   },
-} --[[@as ix.SetupOption]]
+}
 
 ---@class ix.SetupOption.Completion
 ---@field public auto? boolean
 ---@field public auto_docs? boolean
 ---@field public auto_select_first? boolean
 ---@field public preselect? boolean
+---@field public performance? cmp-kit.completion.CompletionService.Config.Performance
 ---@field public lsp? { servers?: table<string, cmp-kit.completion.CompletionService.RegisterProviderParams|{ config?: cmp-kit.completion.ext.source.lsp.completion.Option }> }
 ---@field public default_keyword_pattern? string
 ---@field public icon_resolver? fun(kind: cmp-kit.kit.LSP.CompletionItemKind): { [1]: string, [2]?: string }?
@@ -454,6 +463,7 @@ function ix.get_completion_service(option)
         is_macro_recording = private.config.is_macro_recording,
         default_keyword_pattern = private.config.completion.default_keyword_pattern,
         preselect = private.config.completion.preselect,
+        performance = private.config.completion.performance,
         view = require('cmp-kit.completion.ext.DefaultView').new({
           auto_docs = private.config.completion.auto_docs,
           icon_resolver = private.config.completion.icon_resolver,
@@ -483,6 +493,7 @@ function ix.get_completion_service(option)
       expand_snippet = private.config.expand_snippet,
       default_keyword_pattern = private.config.completion.default_keyword_pattern,
       preselect = private.config.completion.preselect,
+      performance = private.config.completion.performance,
       view = require('cmp-kit.completion.ext.DefaultView').new({
         auto_docs = private.config.completion.auto_docs,
         icon_resolver = private.config.completion.icon_resolver,
