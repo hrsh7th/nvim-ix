@@ -1,0 +1,11 @@
+services:
+  nvim:
+    build: .
+    image: nvim
+    command: nvim -u init.lua
+    tty: true
+    stdin_open: true
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+      - ./pack:/root/.local/share/nvim/site/pack/
