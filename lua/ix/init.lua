@@ -188,7 +188,11 @@ local default_config = {
       if vim.tbl_contains({ '/', '?' }, vim.fn.getcmdtype()) then
         service:register_source(ix.source.completion.buffer(), { group = 1 })
       elseif vim.fn.getcmdtype() == ':' then
-        service:register_source(ix.source.completion.path(), { group = 1 })
+        service:register_source(ix.source.completion.path({
+          get_cwd = function()
+            return vim.fn.getcwd()
+          end,
+        }), { group = 1 })
         service:register_source(ix.source.completion.cmdline(), { group = 10 })
       end
     end,
