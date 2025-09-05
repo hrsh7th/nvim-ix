@@ -7,5 +7,6 @@ services:
     stdin_open: true
     working_dir: /workspace
     volumes:
-      - .:/workspace
-      - ./pack:/root/.local/share/nvim/site/pack/
+      - .:/workspace/
+      - ./volumes/root/.local/share/nvim/site/pack:/root/.local/share/nvim/site/pack
+      - ./volumes/root/.npm:/root/.npm

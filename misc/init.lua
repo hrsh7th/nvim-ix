@@ -2,7 +2,8 @@ vim.pack.add({
   'https://github.com/bluz71/vim-nightfly-colors',
   'https://github.com/hrsh7th/nvim-cmp-kit',
   'https://github.com/hrsh7th/nvim-ix',
-  'https://github.com/neovim/nvim-lspconfig'
+  'https://github.com/neovim/nvim-lspconfig',
+  'https://github.com/nvim-mini/mini.pairs',
 })
 
 -- colorscheme
@@ -20,42 +21,63 @@ end
 -- nvim-ix
 do
   local ix = require('ix')
-
   ix.setup({
     expand_snippet = function(snippet_body)
       vim.snippet.expand(snippet_body)
-    end
+    end,
+    completion = {
+      preselect = true,
+      auto_select_first = true,
+    },
   })
 
-  do
-    ix.charmap.set({ 'i', 'c', 's' }, '<C-d>', ix.action.scroll(0 + 3))
-    ix.charmap.set({ 'i', 'c', 's' }, '<C-u>', ix.action.scroll(0 - 3))
+  vim.keymap.set({ "i", "c" }, "<C-f>", ix.action.scroll(0 + 3))
+  vim.keymap.set({ "i", "c" }, "<C-b>", ix.action.scroll(0 - 3))
 
-    vim.keymap.set({ 'i', 'c' }, '<C-n>', ix.action.completion.select_next())
-    vim.keymap.set({ 'i', 'c' }, '<C-p>', ix.action.completion.select_prev())
-    ix.charmap.set({ 'i', 'c' }, '<C-Space>', ix.action.completion.complete())
-    ix.charmap.set({ 'i', 'c' }, '<C-e>', ix.action.completion.close())
-    ix.charmap.set({ 'c' }, '<CR>', ix.action.completion.commit_cmdline())
-    ix.charmap.set({ 'i' }, '<CR>', ix.action.completion.commit({ select_first = true }))
-    vim.keymap.set({ 'i' }, '<Down>', ix.action.completion.select_next({ no_insert = true }))
-    vim.keymap.set({ 'i' }, '<Up>', ix.action.completion.select_prev({ no_insert = true }))
-    ix.charmap.set({ 'i' }, '<C-y>', ix.action.completion.commit({
-      select_first = true,
-      replace = true,
-      no_snippet = true
-    }))
+  vim.keymap.set({ "i", "c" }, "<C-Space>", ix.action.completion.complete())
+  vim.keymap.set({ "i", "c" }, "<Tab>", ix.action.completion.select_next())
+  vim.keymap.set({ "i", "c" }, "<S-Tab>", ix.action.completion.select_prev())
+  vim.keymap.set({ "i", "c" }, "<C-e>", ix.action.completion.close())
+  ix.charmap.set("c", "<CR>", ix.action.completion.commit_cmdline())
+  ix.charmap.set("i", "<CR>", ix.action.completion.commit())
+  vim.keymap.set("i", "<Down>", ix.action.completion.select_next())
+  vim.keymap.set("i", "<Up>", ix.action.completion.select_prev())
+  vim.keymap.set(
+    "i",
+    "<C-y>",
+    ix.action.completion.commit({ select_first = true, replace = true, no_snippet = true })
+  )
 
-    ix.charmap.set({ 'i', 's' }, '<C-o>', ix.action.signature_help.trigger_or_close())
-    ix.charmap.set({ 'i', 's' }, '<C-j>', ix.action.signature_help.select_next())
-  end
+  vim.keymap.set({ "i", "s" }, "<C-o>", ix.action.signature_help.trigger_or_close())
+  vim.keymap.set({ "i", "s" }, "<C-j>", ix.action.signature_help.select_next())
 end
 
--- emmet_language_server
 do
-  if vim.fn.executable('emmet-language-server') == 0 then
-    vim.system({ 'npm', 'i', '-g', '@olrtg/emmet-language-server' }, {
-      on_stdout = vim.print,
-    }):wait()
+  -- emmet_language_server
+  do
+    if vim.fn.executable('emmet-language-server') == 0 then
+      vim.system({ 'npm', 'i', '-g', '@olrtg/emmet-language-server' }, {
+        on_stdout = vim.print,
+      }):wait()
+    end
+    require('lspconfig').emmet_language_server.setup({})
   end
-  require('lspconfig').emmet_language_server.setup({})
+  -- tailwindcss
+  do
+    if vim.fn.executable('tailwindcss-language-server') == 0 then
+      vim.system({ 'npm', 'i', '-g', '@tailwindcss/language-server' }, {
+        on_stdout = vim.print,
+      }):wait()
+    end
+    require('lspconfig').tailwindcss.setup({})
+  end
+  -- vtsls
+  do
+    if vim.fn.executable('vtsls') == 0 then
+      vim.system({ 'npm', 'i', '-g', '@vtsls/language-server' }, {
+        on_stdout = vim.print,
+      }):wait()
+    end
+    require('lspconfig').vtsls.setup({})
+  end
 end

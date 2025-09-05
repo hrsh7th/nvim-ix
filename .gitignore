@@ -1,2 +1,3 @@
-misc/pack/*
-!misc/pack/.gitkeep
+misc/sandbox
+misc/volumes/
+!misc/volumes/.gitkeep
