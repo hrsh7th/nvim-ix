@@ -6,6 +6,8 @@ vim.pack.add({
   'https://github.com/nvim-mini/mini.pairs',
 })
 
+require('mini.pairs').setup()
+
 -- colorscheme
 do
   vim.cmd.colorscheme('nightfly')

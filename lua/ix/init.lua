@@ -288,19 +288,13 @@ function ix.setup(config)
         return
       end
 
-      -- remove typeahead.
-      while true do
-        local c = vim.fn.getcharstr(0)
-        if c == '' then
-          break
-        end
-      end
-
-      charmap.callback(function()
-        local task = Keymap.send({ keys = typed, remap = true })
-        if Async.in_context() then
-          task:await()
-        end
+      vim.schedule(function()
+        charmap.callback(function()
+          local task = Keymap.send({ keys = typed, remap = true }, false)
+          if Async.in_context() then
+            task:await()
+          end
+        end)
       end)
 
       return ''
