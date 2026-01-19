@@ -123,12 +123,12 @@ local default_config = {
             if lspkind[2].symbolic then
               cache[kind] = {
                 lspkind[2].symbolic(CompletionItemKindLookup[kind]),
-                ('CmpItemKind' .. CompletionItemKindLookup[kind])
+                ('CmpItemKind' .. CompletionItemKindLookup[kind]),
               }
             else
               cache[kind] = {
                 lspkind[2].presets.codicons[CompletionItemKindLookup[kind]],
-                ('CmpItemKind' .. CompletionItemKindLookup[kind])
+                ('CmpItemKind' .. CompletionItemKindLookup[kind]),
               }
             end
           end
