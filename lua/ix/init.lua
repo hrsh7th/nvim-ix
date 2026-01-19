@@ -83,7 +83,7 @@ local default_config = {
     ---Performance related configuration.
     ---@type cmp-kit.completion.CompletionService.Config.Performance
     performance = {
-      fetching_timeout_ms = 120,
+      fetching_timeout_ms = 80,
       menu_update_throttle_ms = 32,
     },
 
@@ -120,7 +120,17 @@ local default_config = {
         kind = kind or LSP.CompletionItemKind.Text
         if lspkind[1] then
           if not cache[kind] then
-            cache[kind] = { lspkind[2].symbolic(CompletionItemKindLookup[kind]), ('CmpItemKind' .. CompletionItemKindLookup[kind]) }
+            if lspkind[2].symbolic then
+              cache[kind] = {
+                lspkind[2].symbolic(CompletionItemKindLookup[kind]),
+                ('CmpItemKind' .. CompletionItemKindLookup[kind])
+              }
+            else
+              cache[kind] = {
+                lspkind[2].presets.codicons[CompletionItemKindLookup[kind]],
+                ('CmpItemKind' .. CompletionItemKindLookup[kind])
+              }
+            end
           end
           return cache[kind]
         end
@@ -603,6 +613,7 @@ end
 ---@class ix.API.Completion
 ---@field prevent fun(callback: fun())
 ---@field hide fun()
+---@field abort fun()
 ---@field show_docs fun()
 ---@field hide_docs fun()
 ---@field is_menu_visible fun(): boolean
@@ -612,6 +623,7 @@ end
 ---@field select fun(index: integer, preselect?: boolean)
 ---@field scroll_docs fun(delta: integer)
 ---@field commit fun(index: integer, option?: { replace: boolean, no_snippet: boolean }): boolean
+---@field wait_for_stable fun()
 ---@class ix.API.SignatureHelp
 ---@field prevent fun(callback: fun())
 ---@field trigger fun(option?: { force?: boolean })
@@ -640,6 +652,9 @@ function ix.do_action(runner)
       end,
       hide = function()
         ix.get_completion_service():clear()
+      end,
+      abort = function()
+        ix.get_completion_service():abort()
       end,
       show_docs = function()
         ix.get_completion_service():show_docs()
@@ -679,6 +694,9 @@ function ix.do_action(runner)
           return true
         end
         return false
+      end,
+      wait_for_stable = function()
+        ix.get_completion_service():wait_for_stable()
       end,
     },
     signature_help = {

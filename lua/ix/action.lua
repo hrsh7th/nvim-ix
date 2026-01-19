@@ -135,6 +135,21 @@ do
     end
   end
 
+  ---Abort completion menu.
+  function action.completion.abort()
+    ---@type ix.Charmap.Callback
+    return function(fallback)
+      fallback = fallback or function() end
+      require('ix').do_action(function(ctx)
+        if ctx.completion.is_menu_visible() then
+          ctx.completion.abort()
+        else
+          fallback()
+        end
+      end)
+    end
+  end
+
   ---Close completion menu.
   function action.completion.close()
     ---@type ix.Charmap.Callback
